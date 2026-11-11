@@ -1,0 +1,225 @@
+// Prisma schema for Jewellery Retail CRM — Phase 1
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ── Enums ──────────────────────────────────────────────
+
+enum Role {
+  ADMIN
+  MANAGER
+  SALES
+}
+
+enum Sentiment {
+  POSITIVE
+  NEUTRAL
+  NEGATIVE
+}
+
+enum ActivityType {
+  NOTE
+  CALL
+  VISIT
+  STATUS_CHANGE
+  ASSIGNMENT_CHANGE
+  STAGE_CHANGE
+  CREATED
+}
+
+// ── Master Data ─────────────────────────────────────────
+
+model User {
+  id         String    @id @default(cuid())
+  email      String    @unique
+  password   String
+  name       String
+  role       Role      @default(SALES)
+  branchId   String?
+  branch     Branch?   @relation(fields: [branchId], references: [id])
+  isActive   Boolean   @default(true)
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  leads       Lead[]      @relation("AssignedStaff")
+  customers   Customer[]  @relation("AssignedStaff")
+  activities  Activity[]
+  deals       Deal[]      @relation("DealOwner")
+  visits      Visit[]
+}
+
+model Branch {
+  id        String    @id @default(cuid())
+  name      String    @unique
+  address   String?
+  phone     String?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  users     User[]
+  leads     Lead[]
+  customers Customer[]
+}
+
+model LeadSource {
+  id        String    @id @default(cuid())
+  name      String    @unique
+  isActive  Boolean   @default(true)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  leads Lead[]
+}
+
+model LeadStatus {
+  id        String    @id @default(cuid())
+  name      String    @unique
+  color     String    @default("#6b7280")
+  isActive  Boolean   @default(true)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  leads Lead[]
+}
+
+model PipelineStage {
+  id        String    @id @default(cuid())
+  name      String    @unique
+  order     Int       @default(0)
+  isActive  Boolean   @default(true)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  deals Deal[]
+}
+
+model LostReason {
+  id        String    @id @default(cuid())
+  name      String    @unique
+  isActive  Boolean   @default(true)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  deals Deal[]
+}
+
+model CustomerCategory {
+  id        String    @id @default(cuid())
+  name      String    @unique
+  isActive  Boolean   @default(true)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  customers Customer[]
+}
+
+model Tag {
+  id    String @id @default(cuid())
+  name  String @unique
+
+  leads Lead[]
+}
+
+// ── Core Entities ───────────────────────────────────────
+
+model Lead {
+  id            String      @id @default(cuid())
+  firstName     String
+  lastName      String
+  email         String?
+  phone         String?
+  sourceId      String?
+  source        LeadSource? @relation(fields: [sourceId], references: [id])
+  statusId      String?
+  status        LeadStatus? @relation(fields: [statusId], references: [id])
+  branchId      String?
+  branch        Branch?     @relation(fields: [branchId], references: [id])
+  assignedToId  String?
+  assignedTo    User?       @relation("AssignedStaff", fields: [assignedToId], references: [id])
+  tags          Tag[]
+  sentiment     Sentiment   @default(NEUTRAL)
+  rating        Int?
+  isConverted    Boolean     @default(false)
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  customer   Customer?
+  deals      Deal[]
+  visits     Visit[]
+  activities Activity[]
+  feedbacks  Feedback[]
+}
+
+model Customer {
+  id            String            @id @default(cuid())
+  leadId        String?           @unique
+  lead          Lead?             @relation(fields: [leadId], references: [id])
+  firstName     String
+  lastName      String
+  email         String?
+  phone         String?
+  categoryId    String?
+  category      CustomerCategory? @relation(fields: [categoryId], references: [id])
+  branchId      String?
+  branch        Branch?           @relation(fields: [branchId], references: [id])
+  assignedToId  String?
+  assignedTo    User?             @relation("AssignedStaff", fields: [assignedToId], references: [id])
+  rating        Int?
+  createdAt     DateTime           @default(now())
+  updatedAt     DateTime           @updatedAt
+}
+
+model Deal {
+  id                String         @id @default(cuid())
+  leadId            String
+  lead              Lead           @relation(fields: [leadId], references: [id])
+  stageId           String
+  stage             PipelineStage  @relation(fields: [stageId], references: [id])
+  value             Float          @default(0)
+  expectedCloseDate DateTime?
+  lostReasonId      String?
+  lostReason        LostReason?    @relation(fields: [lostReasonId], references: [id])
+  ownerId           String?
+  owner             User?          @relation("DealOwner", fields: [ownerId], references: [id])
+  createdAt         DateTime       @default(now())
+  updatedAt         DateTime       @updatedAt
+}
+
+// ── Lead-Linked Entities (all linked via leadId) ────────
+
+model Visit {
+  id        String    @id @default(cuid())
+  leadId    String
+  lead      Lead      @relation(fields: [leadId], references: [id])
+  userId    String?
+  user      User?     @relation(fields: [userId], references: [id])
+  date      DateTime
+  notes     String?
+  createdAt DateTime  @default(now())
+}
+
+model Activity {
+  id          String       @id @default(cuid())
+  leadId      String
+  lead        Lead         @relation(fields: [leadId], references: [id])
+  userId      String?
+  user        User?        @relation(fields: [userId], references: [id])
+  type        ActivityType
+  description String
+  createdAt   DateTime     @default(now())
+}
+
+model Feedback {
+  id        String    @id @default(cuid())
+  leadId    String
+  lead      Lead      @relation(fields: [leadId], references: [id])
+  rating    Int
+  comment   String?
+  createdAt DateTime  @default(now())
+}

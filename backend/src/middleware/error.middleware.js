@@ -1,0 +1,11 @@
+// Centralized error handler — catches errors thrown in async controllers
+export function errorHandler(err, req, res, next) {
+  const statusCode = err.statusCode || 500;
+  const message = err.message || 'Internal server error';
+
+  if (statusCode >= 500) {
+    console.error(`[ERROR] ${err.stack || err}`);
+  }
+
+  res.status(statusCode).json({ error: message });
+}
