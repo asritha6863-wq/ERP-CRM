@@ -13,6 +13,8 @@ export const create  = asyncHandler(async (req, res) => res.status(201).json(awa
 export const update  = asyncHandler(async (req, res) => res.json(await leadService.updateLead(req.user, req.params.id, req.body)));
 export const bulkAssign = asyncHandler(async (req, res) => res.json(await leadService.bulkAssign(req.user, req.body)));
 export const convert = asyncHandler(async (req, res) => res.status(201).json(await leadService.convertLead(req.user, req.params.id)));
+export const win     = asyncHandler(async (req, res) => res.status(201).json(await leadService.winLead(req.user, req.params.id, req.body)));
+export const lose    = asyncHandler(async (req, res) => res.json(await leadService.loseLead(req.user, req.params.id, req.body)));
 
 export const getActivities  = asyncHandler(async (req, res) => {
   const lead = await leadService.getLead(req.user, req.params.id);

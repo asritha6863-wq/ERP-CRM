@@ -15,12 +15,16 @@ import {
   PIPELINE_STAGES_CONFIG,
   LOST_REASONS_CONFIG,
   CUSTOMER_CATEGORIES_CONFIG,
+  CONTACT_TYPES_CONFIG,
+  COMPANIES_CONFIG,
 } from '../pages/masters/configs.jsx';
 
-// Leads & Customers
-import LeadsPage       from '../pages/leads/LeadsPage.jsx';
-import LeadDetailPage  from '../pages/leads/LeadDetailPage.jsx';
-import CustomersPage   from '../pages/customers/CustomersPage.jsx';
+// Leads & Customers & Contacts
+import LeadsPage        from '../pages/leads/LeadsPage.jsx';
+import InstoreLeadsPage from '../pages/leads/InstoreLeadsPage.jsx';
+import LeadDetailPage   from '../pages/leads/LeadDetailPage.jsx';
+import CustomersPage    from '../pages/customers/CustomersPage.jsx';
+import ContactsPage     from '../pages/contacts/ContactsPage.jsx';
 
 // Pipeline
 import PipelinePage from '../pages/pipeline/PipelinePage.jsx';
@@ -36,20 +40,24 @@ export default function AppRoutes() {
         <Route element={<AppLayout />}>
 
           {/* Main modules */}
-          <Route path="/dashboard"    element={<Dashboard />} />
-          <Route path="/leads"        element={<LeadsPage />} />
-          <Route path="/leads/:id"    element={<LeadDetailPage />} />
-          <Route path="/customers"    element={<CustomersPage />} />
-          <Route path="/pipeline"     element={<PipelinePage />} />
-          <Route path="/engagement"   element={<ComingSoon name="Engagement" />} />
-          <Route path="/analytics"    element={<ComingSoon name="Analytics" />} />
-          <Route path="/reports"      element={<ComingSoon name="Reports" />} />
-          <Route path="/activity"     element={<ComingSoon name="Activity" />} />
-          <Route path="/visits"       element={<ComingSoon name="Visits" />} />
-          <Route path="/appointments" element={<ComingSoon name="Appointments" />} />
+          <Route path="/dashboard"     element={<Dashboard />} />
+          <Route path="/contacts"      element={<ContactsPage />} />
+          <Route path="/leads"         element={<LeadsPage />} />
+          <Route path="/instore-leads" element={<InstoreLeadsPage />} />
+          <Route path="/leads/:id"     element={<LeadDetailPage />} />
+          <Route path="/customers"     element={<CustomersPage />} />
+          <Route path="/pipeline"      element={<PipelinePage />} />
+          <Route path="/engagement"    element={<ComingSoon name="Engagement" />} />
+          <Route path="/analytics"     element={<ComingSoon name="Analytics" />} />
+          <Route path="/reports"       element={<ComingSoon name="Reports" />} />
+          <Route path="/activity"      element={<ComingSoon name="Activity" />} />
+          <Route path="/visits"        element={<ComingSoon name="Visits" />} />
+          <Route path="/appointments"  element={<ComingSoon name="Appointments" />} />
 
           {/* Masters — Admin only */}
+          <Route path="/masters/companies"           element={<RoleGuard roles={['ADMIN']}><MasterCrudScreen config={COMPANIES_CONFIG} /></RoleGuard>} />
           <Route path="/masters/branches"            element={<RoleGuard roles={['ADMIN']}><MasterCrudScreen config={BRANCHES_CONFIG} /></RoleGuard>} />
+          <Route path="/masters/contact-types"       element={<RoleGuard roles={['ADMIN']}><MasterCrudScreen config={CONTACT_TYPES_CONFIG} /></RoleGuard>} />
           <Route path="/masters/lead-sources"        element={<RoleGuard roles={['ADMIN']}><MasterCrudScreen config={LEAD_SOURCES_CONFIG} /></RoleGuard>} />
           <Route path="/masters/lead-statuses"       element={<RoleGuard roles={['ADMIN']}><MasterCrudScreen config={LEAD_STATUSES_CONFIG} /></RoleGuard>} />
           <Route path="/masters/pipeline-stages"     element={<RoleGuard roles={['ADMIN']}><MasterCrudScreen config={PIPELINE_STAGES_CONFIG} /></RoleGuard>} />

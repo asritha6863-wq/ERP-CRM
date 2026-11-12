@@ -17,19 +17,6 @@ export const BRANCHES_CONFIG = {
   ],
 };
 
-export const LEAD_SOURCES_CONFIG = {
-  entity: 'lead-sources',
-  title: 'Lead Sources',
-  singular: 'Lead Source',
-  hasIsActive: true,
-  columns: [
-    { key: 'name', header: 'Name', sortable: true },
-  ],
-  fields: [
-    { key: 'name', label: 'Source Name', required: true },
-  ],
-};
-
 export const LEAD_STATUSES_CONFIG = {
   entity: 'lead-statuses',
   title: 'Lead Statuses',
@@ -92,5 +79,66 @@ export const CUSTOMER_CATEGORIES_CONFIG = {
   ],
   fields: [
     { key: 'name', label: 'Category Name', required: true },
+  ],
+};
+
+export const CONTACT_TYPES_CONFIG = {
+  entity: 'contact-types',
+  title: 'Contact Types',
+  singular: 'Contact Type',
+  hasIsActive: true,
+  columns: [
+    { key: 'name', header: 'Type Name', sortable: true },
+  ],
+  fields: [
+    { key: 'name', label: 'Type Name', required: true },
+  ],
+};
+
+export const COMPANIES_CONFIG = {
+  entity: 'companies',
+  title: 'Companies',
+  singular: 'Company',
+  hasIsActive: true,
+  columns: [
+    { key: 'name', header: 'Company Name', sortable: true },
+  ],
+  fields: [
+    { key: 'name', label: 'Company Name', required: true },
+  ],
+};
+
+// Updated Lead Sources — includes defaultChannel
+export const LEAD_SOURCES_CONFIG = {
+  entity: 'lead-sources',
+  title: 'Lead Sources',
+  singular: 'Lead Source',
+  hasIsActive: true,
+  columns: [
+    { key: 'name', header: 'Name', sortable: true },
+    {
+      key: 'defaultChannel',
+      header: 'Default Channel',
+      render: (val) => (
+        <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
+          val === 'INSTORE' ? 'bg-blue-100 text-blue-700' : 'bg-orange-100 text-orange-700'
+        }`}>
+          {val === 'INSTORE' ? 'Instore' : 'Outdoor'}
+        </span>
+      ),
+    },
+  ],
+  fields: [
+    { key: 'name', label: 'Source Name', required: true },
+    {
+      key: 'defaultChannel',
+      label: 'Default Channel',
+      type: 'select',
+      options: [
+        { value: 'OUTDOOR', label: 'Outdoor (Door to Door, Referral, Campaign…)' },
+        { value: 'INSTORE', label: 'Instore (Walk In)' },
+      ],
+      defaultValue: 'OUTDOOR',
+    },
   ],
 };

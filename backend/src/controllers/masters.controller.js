@@ -6,15 +6,15 @@ const ENTITY_MAP = {
   'branches': {
     model: 'branch',
     searchFields: ['name'],
-    createFields: ['name', 'address', 'phone'],
-    updateFields: ['name', 'address', 'phone'],
-    hasIsActive: false,
+    createFields: ['name', 'address', 'phone', 'companyId'],
+    updateFields: ['name', 'address', 'phone', 'companyId'],
+    hasIsActive: true,
   },
   'lead-sources': {
     model: 'leadSource',
     searchFields: ['name'],
-    createFields: ['name'],
-    updateFields: ['name'],
+    createFields: ['name', 'defaultChannel'],
+    updateFields: ['name', 'defaultChannel'],
     hasIsActive: true,
   },
   'lead-statuses': {
@@ -40,6 +40,20 @@ const ENTITY_MAP = {
   },
   'customer-categories': {
     model: 'customerCategory',
+    searchFields: ['name'],
+    createFields: ['name'],
+    updateFields: ['name'],
+    hasIsActive: true,
+  },
+  'contact-types': {
+    model: 'contactType',
+    searchFields: ['name'],
+    createFields: ['name'],
+    updateFields: ['name'],
+    hasIsActive: true,
+  },
+  'companies': {
+    model: 'company',
     searchFields: ['name'],
     createFields: ['name'],
     updateFields: ['name'],

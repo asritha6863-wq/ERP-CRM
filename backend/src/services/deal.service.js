@@ -5,6 +5,7 @@ const DEAL_INCLUDE = {
   stage:      { select: { id: true, name: true, order: true } },
   lostReason: { select: { id: true, name: true } },
   owner:      { select: { id: true, name: true } },
+  contact:    { select: { id: true, firstName: true, lastName: true, phone: true } },
   lead: {
     select: {
       id: true, firstName: true, lastName: true, phone: true,
@@ -13,81 +14,161 @@ const DEAL_INCLUDE = {
   },
 };
 
-export async function listDeals(user, query) {
-  const { ownerId, branchId, dateFrom, dateTo } = query;
-
-  // For kanban we return all deals grouped by stage
-  const scope = getScopeFilter(user);
-
-  // Adapt scope: for deals, MANAGER filter goes through lead.branch, SALES through deal.owner
+// Build the deal scope filter — deals scope through contact or lead
+function buildDealScope(user, { companyId, branchId } = {}) {
   const where = {};
-  if (user.role === 'MANAGER' && user.branchId) {
-    where.lead = { branchId: user.branchId };
+
+  if (user.role === 'MANAGER') {
+    // Scope through lead.branch or contact.branch
+    where.OR = [
+      { lead:    { branchId: user.branchId } },
+      { contact: { branchId: user.branchId } },
+    ];
   } else if (user.role === 'SALES') {
     where.ownerId = user.id;
   }
 
-  if (ownerId)  where.ownerId = ownerId;
-  if (branchId) where.lead    = { ...(where.lead || {}), branchId };
-  if (dateFrom || dateTo) {
-    where.createdAt = {};
-    if (dateFrom) where.createdAt.gte = new Date(dateFrom);
-    if (dateTo)   where.createdAt.lte = new Date(dateTo);
+  // Top-bar selectors (ADMIN + MANAGER with companyId)
+  if (companyId) {
+    if (where.OR) {
+      where.OR = where.OR.map((clause) => ({
+        ...clause,
+        contact: { ...(clause.contact || {}), companyId },
+      }));
+    } else {
+      where.contact = { companyId };
+    }
+  }
+  if (branchId && user.role === 'ADMIN') {
+    where.OR = [
+      { lead:    { branchId } },
+      { contact: { branchId } },
+    ];
   }
 
-  const stages = await prisma.pipelineStage.findMany({
-    orderBy: { order: 'asc' },
+  return where;
+}
+
+// GET /api/deals/kanban — performance-optimised for 100k records
+export async function getKanban(user, query) {
+  const { companyId, branchId, ownerId, dateFrom, dateTo } = query;
+  const scope = buildDealScope(user, { companyId, branchId });
+
+  if (ownerId)  scope.ownerId = ownerId;
+  if (dateFrom || dateTo) {
+    scope.createdAt = {};
+    if (dateFrom) scope.createdAt.gte = new Date(dateFrom);
+    if (dateTo)   scope.createdAt.lte = new Date(dateTo);
+  }
+
+  const stages = await prisma.pipelineStage.findMany({ orderBy: { order: 'asc' } });
+
+  // 1. Aggregate totals per stage — one fast query
+  const summaries = await prisma.deal.groupBy({
+    by: ['stageId'],
+    where: scope,
+    _sum:   { value: true },
+    _count: { id: true },
   });
 
-  const deals = await prisma.deal.findMany({
-    where,
-    include: DEAL_INCLUDE,
-    orderBy: { createdAt: 'desc' },
-  });
+  const summaryMap = Object.fromEntries(
+    summaries.map((s) => [s.stageId, { totalValue: s._sum.value || 0, count: s._count.id }])
+  );
 
-  // Group deals by stageId, attach total value
-  const columns = stages.map((stage) => {
-    const stageDeals = deals.filter((d) => d.stageId === stage.id);
-    const totalValue = stageDeals.reduce((sum, d) => sum + (d.value || 0), 0);
-    return { stage, deals: stageDeals, totalValue };
-  });
+  // 2. Fetch first 20 cards per stage in parallel
+  const cardsByStage = await Promise.all(
+    stages.map((stage) =>
+      prisma.deal.findMany({
+        where: { ...scope, stageId: stage.id },
+        take: 20,
+        orderBy: { updatedAt: 'desc' },
+        include: DEAL_INCLUDE,
+      })
+    )
+  );
+
+  const columns = stages.map((stage, i) => ({
+    stage,
+    totalValue: summaryMap[stage.id]?.totalValue ?? 0,
+    count:      summaryMap[stage.id]?.count      ?? 0,
+    deals:      cardsByStage[i],
+  }));
 
   return columns;
+}
+
+// GET /api/deals — flat paginated list (for reports)
+export async function listDeals(user, query) {
+  const {
+    page = 1, limit = 20,
+    companyId, branchId, ownerId, stageId,
+    dateFrom, dateTo,
+  } = query;
+
+  const skip  = (Math.max(1, +page) - 1) * Math.min(100, +limit);
+  const take  = Math.min(100, +limit);
+  const scope = buildDealScope(user, { companyId, branchId });
+
+  if (ownerId)  scope.ownerId  = ownerId;
+  if (stageId)  scope.stageId  = stageId;
+  if (dateFrom || dateTo) {
+    scope.createdAt = {};
+    if (dateFrom) scope.createdAt.gte = new Date(dateFrom);
+    if (dateTo)   scope.createdAt.lte = new Date(dateTo);
+  }
+
+  const [items, total] = await Promise.all([
+    prisma.deal.findMany({ where: scope, skip, take, orderBy: { createdAt: 'desc' }, include: DEAL_INCLUDE }),
+    prisma.deal.count({ where: scope }),
+  ]);
+
+  return { data: items, total, page: +page, limit: take, pages: Math.ceil(total / take) };
 }
 
 export async function getDeal(user, id) {
   const deal = await prisma.deal.findUnique({ where: { id }, include: DEAL_INCLUDE });
   if (!deal) return null;
-  // Scope check
-  if (user.role === 'SALES' && deal.ownerId !== user.id) return null;
-  if (user.role === 'MANAGER' && deal.lead?.branch?.id !== user.branchId) return null;
+  if (user.role === 'SALES'   && deal.ownerId !== user.id)             return null;
+  if (user.role === 'MANAGER' && deal.lead?.branch?.id !== user.branchId &&
+      deal.contact?.branchId !== user.branchId)                        return null;
   return deal;
 }
 
 export async function createDeal(user, data) {
-  const { leadId, stageId, value = 0, expectedCloseDate, ownerId } = data;
-  if (!leadId)  throw { statusCode: 400, message: 'leadId is required' };
+  const { contactId, leadId, stageId, value = 0, expectedCloseDate, ownerId, invoiceRef } = data;
   if (!stageId) throw { statusCode: 400, message: 'stageId is required' };
+  if (!contactId && !leadId) throw { statusCode: 400, message: 'contactId or leadId is required' };
+
+  // Derive contactId from lead if not provided
+  let resolvedContactId = contactId || null;
+  if (!resolvedContactId && leadId) {
+    const lead = await prisma.lead.findUnique({ where: { id: leadId }, select: { contactId: true } });
+    resolvedContactId = lead?.contactId || null;
+  }
 
   const deal = await prisma.deal.create({
     data: {
-      leadId,
+      contactId:         resolvedContactId,
+      leadId:            leadId   || null,
       stageId,
-      value:            +value,
+      value:             +value,
       expectedCloseDate: expectedCloseDate ? new Date(expectedCloseDate) : null,
-      ownerId:          ownerId || user.id,
+      ownerId:           ownerId || user.id,
+      invoiceRef:        invoiceRef || null,
     },
     include: DEAL_INCLUDE,
   });
 
-  await prisma.activity.create({
-    data: {
-      leadId,
-      userId: user.id,
-      type: 'STAGE_CHANGE',
-      description: `Deal created in stage "${deal.stage.name}" by ${user.name}`,
-    },
-  });
+  if (leadId) {
+    await prisma.activity.create({
+      data: {
+        leadId,
+        userId: user.id,
+        type: 'STAGE_CHANGE',
+        description: `Deal created in stage "${deal.stage.name}" by ${user.name}`,
+      },
+    });
+  }
 
   return deal;
 }
@@ -96,27 +177,28 @@ export async function updateDeal(user, id, data) {
   const existing = await getDeal(user, id);
   if (!existing) throw { statusCode: 404, message: 'Deal not found' };
 
-  const { value, expectedCloseDate, ownerId } = data;
+  const { value, expectedCloseDate, dueDate, ownerId, invoiceRef } = data;
 
   return prisma.deal.update({
     where: { id },
     data: {
       ...(value             !== undefined && { value: +value }),
       ...(expectedCloseDate !== undefined && { expectedCloseDate: expectedCloseDate ? new Date(expectedCloseDate) : null }),
+      ...(dueDate           !== undefined && { dueDate: dueDate ? new Date(dueDate) : null }),
       ...(ownerId           !== undefined && { ownerId }),
+      ...(invoiceRef        !== undefined && { invoiceRef }),
     },
     include: DEAL_INCLUDE,
   });
 }
 
-export async function moveStage(user, id, { stageId, lostReasonId, wonDate }) {
+export async function moveStage(user, id, { stageId, lostReasonId }) {
   const existing = await getDeal(user, id);
   if (!existing) throw { statusCode: 404, message: 'Deal not found' };
 
   const stage = await prisma.pipelineStage.findUnique({ where: { id: stageId } });
   if (!stage) throw { statusCode: 404, message: 'Stage not found' };
 
-  // Enforce lost reason when moving to Lost
   if (stage.name === 'Lost' && !lostReasonId) {
     throw { statusCode: 400, message: 'lostReasonId is required when moving to Lost' };
   }
@@ -130,15 +212,16 @@ export async function moveStage(user, id, { stageId, lostReasonId, wonDate }) {
     include: DEAL_INCLUDE,
   });
 
-  // Record stage change activity on the associated lead
-  await prisma.activity.create({
-    data: {
-      leadId: existing.leadId,
-      userId: user.id,
-      type:   'STAGE_CHANGE',
-      description: `Deal moved from "${existing.stage.name}" to "${stage.name}" by ${user.name}`,
-    },
-  });
+  if (existing.leadId) {
+    await prisma.activity.create({
+      data: {
+        leadId: existing.leadId,
+        userId: user.id,
+        type:   'STAGE_CHANGE',
+        description: `Deal moved from "${existing.stage.name}" to "${stage.name}" by ${user.name}`,
+      },
+    });
+  }
 
   return deal;
 }

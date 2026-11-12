@@ -1,6 +1,7 @@
 import * as dealService from '../services/deal.service.js';
 import { asyncHandler }  from '../utils/asyncHandler.js';
 
+export const kanban    = asyncHandler(async (req, res) => res.json(await dealService.getKanban(req.user, req.query)));
 export const list      = asyncHandler(async (req, res) => res.json(await dealService.listDeals(req.user, req.query)));
 export const getOne    = asyncHandler(async (req, res) => {
   const d = await dealService.getDeal(req.user, req.params.id);

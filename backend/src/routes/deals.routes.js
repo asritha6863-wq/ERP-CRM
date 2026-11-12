@@ -1,10 +1,11 @@
 import { Router }  from 'express';
 import { authenticate } from '../middleware/auth.middleware.js';
-import { list, getOne, create, update, moveStage, remove } from '../controllers/deals.controller.js';
+import { kanban, list, getOne, create, update, moveStage, remove } from '../controllers/deals.controller.js';
 
 const router = Router();
 router.use(authenticate);
 
+router.get('/kanban',        kanban);    // must be before /:id
 router.get('/',              list);
 router.get('/:id',           getOne);
 router.post('/',             create);

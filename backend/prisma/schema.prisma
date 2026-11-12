@@ -1,4 +1,4 @@
-// Prisma schema for Jewellery Retail CRM — Phase 1
+// Prisma schema for Jewellery Retail CRM — Phase 2 (Contacts + Channels)
 
 generator client {
   provider = "prisma-client-js"
@@ -33,6 +33,36 @@ enum ActivityType {
   CREATED
 }
 
+enum LeadChannel {
+  OUTDOOR   // Door to Door, Mass Marketing, Referral, Campaign
+  INSTORE   // Walk In
+}
+
+// ── Company ─────────────────────────────────────────────
+
+model Company {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  branches Branch[]
+  contacts Contact[]
+}
+
+// ── ContactType ──────────────────────────────────────────
+
+model ContactType {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  contacts Contact[]
+}
+
 // ── Master Data ─────────────────────────────────────────
 
 model User {
@@ -48,6 +78,7 @@ model User {
   updatedAt  DateTime  @updatedAt
 
   leads       Lead[]      @relation("AssignedStaff")
+  contacts    Contact[]   @relation("ContactAssignee")
   customers   Customer[]  @relation("AssignedStaff")
   activities  Activity[]
   deals       Deal[]      @relation("DealOwner")
@@ -56,23 +87,30 @@ model User {
 
 model Branch {
   id        String    @id @default(cuid())
-  name      String    @unique
+  name      String
+  companyId String?
+  company   Company?  @relation(fields: [companyId], references: [id])
   address   String?
   phone     String?
+  isActive  Boolean   @default(true)
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
 
   users     User[]
   leads     Lead[]
   customers Customer[]
+  contacts  Contact[]
+
+  @@unique([name, companyId])
 }
 
 model LeadSource {
-  id        String    @id @default(cuid())
-  name      String    @unique
-  isActive  Boolean   @default(true)
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
+  id             String      @id @default(cuid())
+  name           String      @unique
+  defaultChannel LeadChannel @default(OUTDOOR)
+  isActive       Boolean     @default(true)
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
 
   leads Lead[]
 }
@@ -126,10 +164,45 @@ model Tag {
   leads Lead[]
 }
 
+// ── Contact — master person record ──────────────────────
+
+model Contact {
+  id             String       @id @default(cuid())
+  firstName      String
+  lastName       String
+  phone          String?
+  email          String?
+  companyId      String
+  company        Company      @relation(fields: [companyId], references: [id])
+  typeId         String?
+  type           ContactType? @relation(fields: [typeId], references: [id])
+  branchId       String?
+  branch         Branch?      @relation(fields: [branchId], references: [id])
+  assignedToId   String?
+  assignedTo     User?        @relation("ContactAssignee", fields: [assignedToId], references: [id])
+  rating         Int?
+  requiresReview Boolean      @default(false)
+  isDuplicate    Boolean      @default(false)
+  isActive       Boolean      @default(true)
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  leads Lead[]
+  deals Deal[]
+
+  @@unique([phone, companyId])
+  @@index([branchId])
+  @@index([assignedToId])
+  @@index([phone])
+}
+
 // ── Core Entities ───────────────────────────────────────
 
 model Lead {
   id            String      @id @default(cuid())
+  contactId     String?
+  contact       Contact?    @relation(fields: [contactId], references: [id])
+  channel       LeadChannel @default(OUTDOOR)
   firstName     String
   lastName      String
   email         String?
@@ -145,7 +218,10 @@ model Lead {
   tags          Tag[]
   sentiment     Sentiment   @default(NEUTRAL)
   rating        Int?
-  isConverted    Boolean     @default(false)
+  dueDate       DateTime?
+  isWon         Boolean     @default(false)
+  isLost        Boolean     @default(false)
+  isConverted   Boolean     @default(false)
   createdAt     DateTime    @default(now())
   updatedAt     DateTime    @updatedAt
 
@@ -154,6 +230,13 @@ model Lead {
   visits     Visit[]
   activities Activity[]
   feedbacks  Feedback[]
+
+  @@index([contactId])
+  @@index([channel])
+  @@index([branchId])
+  @@index([assignedToId])
+  @@index([statusId])
+  @@index([dueDate])
 }
 
 model Customer {
@@ -177,21 +260,31 @@ model Customer {
 
 model Deal {
   id                String         @id @default(cuid())
-  leadId            String
-  lead              Lead           @relation(fields: [leadId], references: [id])
+  contactId         String?
+  contact           Contact?       @relation(fields: [contactId], references: [id])
+  leadId            String?
+  lead              Lead?          @relation(fields: [leadId], references: [id])
   stageId           String
   stage             PipelineStage  @relation(fields: [stageId], references: [id])
   value             Float          @default(0)
   expectedCloseDate DateTime?
+  dueDate           DateTime?
+  invoiceRef        String?
   lostReasonId      String?
   lostReason        LostReason?    @relation(fields: [lostReasonId], references: [id])
   ownerId           String?
   owner             User?          @relation("DealOwner", fields: [ownerId], references: [id])
   createdAt         DateTime       @default(now())
   updatedAt         DateTime       @updatedAt
+
+  @@index([contactId])
+  @@index([leadId])
+  @@index([stageId])
+  @@index([ownerId])
+  @@index([expectedCloseDate])
 }
 
-// ── Lead-Linked Entities (all linked via leadId) ────────
+// ── Lead-Linked Entities ────────────────────────────────
 
 model Visit {
   id        String    @id @default(cuid())

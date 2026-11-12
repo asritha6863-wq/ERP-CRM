@@ -21,6 +21,9 @@ import {
   Calendar,
   ChevronDown,
   ChevronRight,
+  Store,
+  BookUser,
+  Briefcase,
 } from 'lucide-react';
 import { useState } from 'react';
 import { useAuth } from '../../context/AuthContext.jsx';
@@ -29,29 +32,33 @@ import { useTabs } from '../../context/TabContext.jsx';
 const ALL_ROLES = ['ADMIN', 'MANAGER', 'SALES'];
 
 const NAV = [
-  { id: 'dashboard',       label: 'Dashboard',        path: '/dashboard',       icon: LayoutDashboard, roles: ALL_ROLES },
-  { id: 'leads',           label: 'Leads',             path: '/leads',           icon: Users,           roles: ALL_ROLES },
-  { id: 'pipeline',        label: 'Sales Pipeline',    path: '/pipeline',        icon: KanbanSquare,    roles: ALL_ROLES },
-  { id: 'customers',       label: 'Customers',         path: '/customers',       icon: UserCheck,       roles: ALL_ROLES },
-  { id: 'engagement',      label: 'Engagement',        path: '/engagement',      icon: TrendingUp,      roles: ALL_ROLES },
-  { id: 'analytics',       label: 'Analytics',         path: '/analytics',       icon: BarChart2,       roles: ALL_ROLES },
-  { id: 'reports',         label: 'Reports',           path: '/reports',         icon: FileText,        roles: ALL_ROLES },
-  { id: 'activity',        label: 'Activity',          path: '/activity',        icon: Activity,        roles: ALL_ROLES },
-  { id: 'visits',          label: 'Visits',            path: '/visits',          icon: MapPin,          roles: ALL_ROLES },
-  { id: 'appointments',    label: 'Appointments',      path: '/appointments',    icon: Calendar,        roles: ALL_ROLES },
+  { id: 'dashboard',       label: 'Dashboard',        path: '/dashboard',        icon: LayoutDashboard, roles: ALL_ROLES },
+  { id: 'contacts',        label: 'Contacts',          path: '/contacts',         icon: BookUser,        roles: ALL_ROLES },
+  { id: 'leads',           label: 'Leads',             path: '/leads',            icon: Users,           roles: ALL_ROLES },
+  { id: 'instore-leads',   label: 'Instore Leads',     path: '/instore-leads',    icon: Store,           roles: ALL_ROLES },
+  { id: 'pipeline',        label: 'Sales Pipeline',    path: '/pipeline',         icon: KanbanSquare,    roles: ALL_ROLES },
+  { id: 'customers',       label: 'Customers',         path: '/customers',        icon: UserCheck,       roles: ALL_ROLES },
+  { id: 'engagement',      label: 'Engagement',        path: '/engagement',       icon: TrendingUp,      roles: ALL_ROLES },
+  { id: 'analytics',       label: 'Analytics',         path: '/analytics',        icon: BarChart2,       roles: ALL_ROLES },
+  { id: 'reports',         label: 'Reports',           path: '/reports',          icon: FileText,        roles: ALL_ROLES },
+  { id: 'activity',        label: 'Activity',          path: '/activity',         icon: Activity,        roles: ALL_ROLES },
+  { id: 'visits',          label: 'Visits',            path: '/visits',           icon: MapPin,          roles: ALL_ROLES },
+  { id: 'appointments',    label: 'Appointments',      path: '/appointments',     icon: Calendar,        roles: ALL_ROLES },
   {
     id: 'masters',
     label: 'Masters',
     icon: Settings,
     roles: ['ADMIN'],
     children: [
+      { id: 'companies',           label: 'Companies',           path: '/masters/companies',           icon: Briefcase  },
       { id: 'branches',            label: 'Branches',            path: '/masters/branches',            icon: Building2  },
+      { id: 'contact-types',       label: 'Contact Types',       path: '/masters/contact-types',       icon: BookUser   },
       { id: 'lead-sources',        label: 'Lead Sources',        path: '/masters/lead-sources',        icon: Radio      },
       { id: 'lead-statuses',       label: 'Lead Statuses',       path: '/masters/lead-statuses',       icon: Tag        },
       { id: 'pipeline-stages',     label: 'Pipeline Stages',     path: '/masters/pipeline-stages',     icon: GitBranch  },
       { id: 'lost-reasons',        label: 'Lost Reasons',        path: '/masters/lost-reasons',        icon: AlertCircle },
       { id: 'customer-categories', label: 'Customer Categories', path: '/masters/customer-categories', icon: FolderTree },
-      { id: 'users',               label: 'Users',               path: '/masters/users',               icon: UserCog   },
+      { id: 'users',               label: 'Users',               path: '/masters/users',               icon: UserCog    },
     ],
   },
 ];

@@ -1,5 +1,6 @@
 import prisma from '../utils/prisma.js';
 import { getScopeFilter } from '../middleware/scope.middleware.js';
+import { findOrCreateContact } from './contact.service.js';
 
 const LEAD_INCLUDE = {
   source:     { select: { id: true, name: true } },
@@ -15,14 +16,17 @@ export async function listLeads(user, query) {
     page = 1, limit = 20, search = '',
     statusId, sourceId, branchId, assignedToId,
     dateFrom, dateTo,
+    channel,           // OUTDOOR | INSTORE — if omitted returns all
+    companyId,         // top-bar selector
   } = query;
 
   const skip = (Math.max(1, +page) - 1) * Math.min(100, +limit);
   const take = Math.min(100, +limit);
 
-  const scope  = getScopeFilter(user);
+  const scope  = getScopeFilter(user, { companyId, branchId });
   const where  = { ...scope };
 
+  if (channel) where.channel = channel;
   if (search) {
     where.OR = [
       { firstName: { contains: search, mode: 'insensitive' } },
@@ -76,15 +80,29 @@ export async function getLead(user, id) {
 
 export async function createLead(user, data) {
   const { firstName, lastName, email, phone, sourceId, statusId, branchId,
-          assignedToId, tagNames = [], sentiment, rating } = data;
+          assignedToId, tagNames = [], sentiment, rating, channel, companyId } = data;
 
   if (!firstName?.trim()) throw { statusCode: 400, message: 'firstName is required' };
   if (!lastName?.trim())  throw { statusCode: 400, message: 'lastName is required' };
 
-  // Duplicate phone check
-  if (phone?.trim()) {
-    const dup = await prisma.lead.findFirst({ where: { phone: phone.trim() } });
-    if (dup) throw { statusCode: 409, message: `Phone ${phone} is already registered` };
+  // Resolve source to get defaultChannel
+  let derivedChannel = channel || 'OUTDOOR';
+  if (sourceId) {
+    const source = await prisma.leadSource.findUnique({ where: { id: sourceId } });
+    if (source?.defaultChannel) derivedChannel = source.defaultChannel;
+  }
+
+  // Find or create Contact by (phone, companyId)
+  const resolvedCompanyId = companyId || await getDefaultCompanyId();
+  let contactId = null;
+  if (resolvedCompanyId) {
+    const { contact } = await findOrCreateContact({
+      firstName, lastName, email, phone,
+      companyId: resolvedCompanyId,
+      branchId: branchId || null,
+      assignedToId: assignedToId || null,
+    });
+    contactId = contact.id;
   }
 
   // Resolve/create tags
@@ -92,6 +110,8 @@ export async function createLead(user, data) {
 
   const lead = await prisma.lead.create({
     data: {
+      contactId: contactId || null,
+      channel:   derivedChannel,
       firstName: firstName.trim(),
       lastName:  lastName.trim(),
       email:     email?.trim() || null,
@@ -253,4 +273,92 @@ async function resolveTags(names) {
     tags.push(tag);
   }
   return tags;
+}
+
+async function getDefaultCompanyId() {
+  const company = await prisma.company.findFirst({ where: { isActive: true } });
+  return company?.id || null;
+}
+
+export async function winLead(user, id, { value = 0, invoiceRef }) {
+  const lead = await getLead(user, id);
+  if (!lead) throw { statusCode: 404, message: 'Lead not found' };
+  if (lead.isWon)  throw { statusCode: 409, message: 'Lead is already Won' };
+  if (lead.isLost) throw { statusCode: 409, message: 'Lead is already Lost' };
+
+  // Find Won lead status and Won pipeline stage
+  const [wonStatus, wonStage] = await Promise.all([
+    prisma.leadStatus.findFirst({ where: { name: { equals: 'Won', mode: 'insensitive' } } }),
+    prisma.pipelineStage.findFirst({ where: { name: { equals: 'Won', mode: 'insensitive' } } }),
+  ]);
+
+  if (!wonStage) throw { statusCode: 500, message: 'Pipeline stage "Won" not found' };
+
+  const result = await prisma.$transaction(async (tx) => {
+    const updatedLead = await tx.lead.update({
+      where: { id },
+      data: {
+        isWon:    true,
+        statusId: wonStatus?.id || lead.statusId,
+      },
+    });
+
+    const deal = await tx.deal.create({
+      data: {
+        contactId:  lead.contactId || null,
+        leadId:     lead.id,
+        stageId:    wonStage.id,
+        value:      +value,
+        ownerId:    user.id,
+        invoiceRef: invoiceRef || null,
+      },
+    });
+
+    await tx.activity.create({
+      data: {
+        leadId:      id,
+        userId:      user.id,
+        type:        'STAGE_CHANGE',
+        description: `Lead won with value ₹${value}${invoiceRef ? ` (Invoice: ${invoiceRef})` : ''} by ${user.name}`,
+      },
+    });
+
+    return { lead: updatedLead, deal };
+  });
+
+  return result;
+}
+
+export async function loseLead(user, id, { lostReasonId }) {
+  const lead = await getLead(user, id);
+  if (!lead) throw { statusCode: 404, message: 'Lead not found' };
+  if (lead.isLost) throw { statusCode: 409, message: 'Lead is already Lost' };
+  if (!lostReasonId) throw { statusCode: 400, message: 'lostReasonId is required' };
+
+  const lostStatus = await prisma.leadStatus.findFirst({
+    where: { name: { equals: 'Lost', mode: 'insensitive' } },
+  });
+
+  const updatedLead = await prisma.$transaction(async (tx) => {
+    const updated = await tx.lead.update({
+      where: { id },
+      data: {
+        isLost:   true,
+        statusId: lostStatus?.id || lead.statusId,
+      },
+    });
+
+    await tx.activity.create({
+      data: {
+        leadId:      id,
+        userId:      user.id,
+        type:        'STAGE_CHANGE',
+        description: `Lead marked as Lost by ${user.name}`,
+      },
+    });
+
+    return updated;
+  });
+
+  return updatedLead;
 }

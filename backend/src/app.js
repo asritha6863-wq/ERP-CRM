@@ -9,6 +9,7 @@ import usersRoutes     from './routes/users.routes.js';
 import leadsRoutes     from './routes/leads.routes.js';
 import customersRoutes from './routes/customers.routes.js';
 import dealsRoutes     from './routes/deals.routes.js';
+import contactsRoutes  from './routes/contacts.routes.js';
 import { errorHandler } from './middleware/error.middleware.js';
 
 dotenv.config();
@@ -33,6 +34,7 @@ app.use('/api/users',     usersRoutes);
 app.use('/api/leads',     leadsRoutes);
 app.use('/api/customers', customersRoutes);
 app.use('/api/deals',     dealsRoutes);
+app.use('/api/contacts',  contactsRoutes);
 
 // 404 handler
 app.use((req, res) => {
