@@ -1,10 +1,9 @@
 import { useNavigate, useLocation } from 'react-router-dom';
 import {
   LayoutDashboard, Users, UserCheck, KanbanSquare, Settings,
-  Building2, Radio, Tag, GitBranch, AlertCircle, FolderTree,
-  UserCog, Gem, TrendingUp, BarChart2, FileText, Activity,
+  Gem, TrendingUp, BarChart2, FileText, Activity,
   MapPin, Calendar, ChevronDown, ChevronRight, Store, BookUser,
-  Briefcase, Settings2,
+  Settings2,
 } from 'lucide-react';
 import { useState } from 'react';
 import { useAuth } from '../../context/AuthContext.jsx';
@@ -45,18 +44,12 @@ const NAV = [
     icon: Settings,
     roles: ['ADMIN'],
     children: [
-      { id: 'stage-master',    label: 'Stage Master',        path: '/masters/stage',               icon: Settings2   },
-      { id: 'area-master',     label: 'Area Master',         path: '/masters/areas',               icon: MapPin      },
-      { id: 'location-master', label: 'Location Master',     path: '/masters/locations',           icon: MapPin      },
-      { id: 'lead-source',     label: 'Lead Source Master',  path: '/masters/lead-sources',        icon: Settings2   },
-      { id: 'channel',         label: 'Channel Master',      path: '/masters/channels',            icon: Settings2   },
-      { id: 'lead-status',     label: 'Lead Status Master',  path: '/masters/lead-statuses',       icon: Settings2   },
-      { id: 'companies',       label: 'Companies',           path: '/masters/companies',           icon: Briefcase   },
-      { id: 'branches',        label: 'Branches',            path: '/masters/branches',            icon: Building2   },
-      { id: 'contact-types',   label: 'Contact Types',       path: '/masters/contact-types',       icon: BookUser    },
-      { id: 'lost-reasons',    label: 'Lost Reasons',        path: '/masters/lost-reasons',        icon: AlertCircle },
-      { id: 'categories',      label: 'Customer Categories', path: '/masters/customer-categories', icon: FolderTree  },
-      { id: 'users',           label: 'Users',               path: '/masters/users',               icon: UserCog     },
+      { id: 'stage-master',    label: 'Stage Master',       path: '/masters/stage',        icon: Settings2 },
+      { id: 'area-master',     label: 'Area Master',        path: '/masters/areas',        icon: MapPin    },
+      { id: 'location-master', label: 'Location Master',    path: '/masters/locations',    icon: MapPin    },
+      { id: 'lead-source',     label: 'Lead Source Master', path: '/masters/lead-sources', icon: Settings2 },
+      { id: 'channel',         label: 'Channel Master',     path: '/masters/channels',     icon: Settings2 },
+      { id: 'lead-status',     label: 'Lead Status Master', path: '/masters/lead-statuses',icon: Settings2 },
     ],
   },
 ];
