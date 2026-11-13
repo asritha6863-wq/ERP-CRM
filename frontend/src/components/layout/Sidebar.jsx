@@ -76,9 +76,22 @@ const NAV = [
     icon: BarChart2,
     roles: ALL_ROLES,
     children: [
-      { id: 'sales-performance',   label: 'Sales Performance',   path: '/analytics/sales',     icon: TrendingUp },
-      { id: 'location-wise-sales', label: 'Location Wise Sales', path: '/analytics/location',  icon: MapPin     },
-      { id: 'crm-analytics',       label: 'CRM Analytics',       path: '/analytics/crm',       icon: BarChart2  },
+      { id: 'sales-performance',   label: 'Sales Performance',   path: '/analytics/sales',    icon: TrendingUp },
+      { id: 'location-wise-sales', label: 'Location Wise Sales', path: '/analytics/location', icon: MapPin     },
+      { id: 'crm-analytics',       label: 'CRM Analytics',       path: '/analytics/crm',      icon: BarChart2  },
+    ],
+  },
+  {
+    id: 'reports',
+    label: 'Reports',
+    icon: FileText,
+    roles: ALL_ROLES,
+    children: [
+      { id: 'lead-report',              label: 'Lead Report',              path: '/reports/leads',            icon: FileText },
+      { id: 'instore-lead-report',      label: 'Instore Lead Report',      path: '/reports/instore-leads',    icon: FileText },
+      { id: 'bde-wise-report',          label: 'BDE Wise Report',          path: '/reports/bde',              icon: FileText },
+      { id: 'customer-feedback-report', label: 'Customer Feedback Report', path: '/reports/customer-feedback',icon: FileText },
+      { id: 'incentive-report',         label: 'Incentive Report',         path: '/reports/incentive',        icon: FileText },
     ],
   },
   { id: 'analytics',    label: 'Analytics',    path: '/analytics',    icon: BarChart2,  roles: ALL_ROLES },
@@ -100,6 +113,7 @@ export default function Sidebar() {
   const isInCustomerMgmt  = ['/customers', '/customer-intelligence', '/interaction-logs', '/customer-segmentation', '/marriage-purchase'].some((p) => location.pathname.startsWith(p));
   const isInEngagement    = location.pathname.startsWith('/engagement');
   const isInAnalytics     = location.pathname.startsWith('/analytics');
+  const isInReports       = location.pathname.startsWith('/reports');
 
   const [openGroups, setOpenGroups] = useState(() => ({
     'sales-pipeline':        isInSalesPipeline,
@@ -107,6 +121,7 @@ export default function Sidebar() {
     'customer-management':   isInCustomerMgmt,
     'engagement':            isInEngagement,
     'performance-analytics': isInAnalytics,
+    'reports':               isInReports,
   }));
 
   const toggleGroup = (id) => setOpenGroups((s) => ({ ...s, [id]: !s[id] }));
