@@ -4,7 +4,7 @@ import {
   Gem, TrendingUp, BarChart2, FileText, Activity,
   MapPin, Calendar, ChevronDown, ChevronRight, Store, BookUser,
   Settings2, Brain, MessageSquare, PieChart, Heart,
-  Bell, Megaphone, PartyPopper,
+  Bell, Megaphone, PartyPopper, CheckSquare,
 } from 'lucide-react';
 import { useState } from 'react';
 import { useAuth } from '../../context/AuthContext.jsx';
@@ -52,11 +52,10 @@ const NAV = [
     icon: UserCheck,
     roles: ALL_ROLES,
     children: [
-      { id: 'customers',             label: 'Customers',              path: '/customers',              icon: UserCheck   },
-      { id: 'customer-intelligence', label: 'Customer Intelligence',  path: '/customer-intelligence',  icon: Brain       },
+      { id: 'customer-intelligence', label: 'Customer Intelligence',  path: '/customer-intelligence',  icon: Brain         },
       { id: 'interaction-logs',      label: 'Interaction Logs',       path: '/interaction-logs',       icon: MessageSquare },
-      { id: 'customer-segmentation', label: 'Customer Segmentation',  path: '/customer-segmentation',  icon: PieChart    },
-      { id: 'marriage-purchase',     label: 'Marriage Purchase',      path: '/marriage-purchase',      icon: Heart       },
+      { id: 'customer-segmentation', label: 'Customer Segmentation',  path: '/customer-segmentation',  icon: PieChart      },
+      { id: 'marriage-purchase',     label: 'Marriage Purchase',      path: '/marriage-purchase',      icon: Heart         },
     ],
   },
   {
@@ -94,11 +93,16 @@ const NAV = [
       { id: 'incentive-report',         label: 'Incentive Report',         path: '/reports/incentive',        icon: FileText },
     ],
   },
-  { id: 'analytics',    label: 'Analytics',    path: '/analytics',    icon: BarChart2,  roles: ALL_ROLES },
-  { id: 'reports',      label: 'Reports',      path: '/reports',      icon: FileText,   roles: ALL_ROLES },
-  { id: 'activity',     label: 'Activity',     path: '/activity',     icon: Activity,   roles: ALL_ROLES },
-  { id: 'visits',       label: 'Visits',       path: '/visits',       icon: MapPin,     roles: ALL_ROLES },
-  { id: 'appointments', label: 'Appointments', path: '/appointments', icon: Calendar,   roles: ALL_ROLES },
+  {
+    id: 'activity',
+    label: 'Activity',
+    icon: Activity,
+    roles: ALL_ROLES,
+    children: [
+      { id: 'customer-feed', label: 'Customer Feed', path: '/activity/feed',  icon: MessageSquare },
+      { id: 'tasks',         label: 'Tasks',          path: '/activity/tasks', icon: CheckSquare   },
+    ],
+  },
 ];
 
 const SALES_PIPELINE_PATHS = ['/leads', '/instore-leads', '/pipeline', '/contacts'];
@@ -114,6 +118,7 @@ export default function Sidebar() {
   const isInEngagement    = location.pathname.startsWith('/engagement');
   const isInAnalytics     = location.pathname.startsWith('/analytics');
   const isInReports       = location.pathname.startsWith('/reports');
+  const isInActivity      = location.pathname.startsWith('/activity');
 
   const [openGroups, setOpenGroups] = useState(() => ({
     'sales-pipeline':        isInSalesPipeline,
@@ -122,6 +127,7 @@ export default function Sidebar() {
     'engagement':            isInEngagement,
     'performance-analytics': isInAnalytics,
     'reports':               isInReports,
+    'activity':              isInActivity,
   }));
 
   const toggleGroup = (id) => setOpenGroups((s) => ({ ...s, [id]: !s[id] }));

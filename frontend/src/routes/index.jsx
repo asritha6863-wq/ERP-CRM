@@ -72,7 +72,9 @@ export default function AppRoutes() {
           <Route path="/reports/bde"                 element={<ComingSoon name="BDE Wise Report" />} />
           <Route path="/reports/customer-feedback"   element={<ComingSoon name="Customer Feedback Report" />} />
           <Route path="/reports/incentive"           element={<ComingSoon name="Incentive Report" />} />
-          <Route path="/activity"      element={<ComingSoon name="Activity" />} />
+          <Route path="/activity"        element={<ComingSoon name="Activity" />} />
+          <Route path="/activity/feed"   element={<ComingSoon name="Customer Feed" />} />
+          <Route path="/activity/tasks"  element={<ComingSoon name="Tasks" />} />
           <Route path="/visits"        element={<ComingSoon name="Visits" />} />
           <Route path="/appointments"  element={<ComingSoon name="Appointments" />} />
 
