@@ -1,12 +1,11 @@
 import { useState, useEffect } from 'react';
 import { X, ChevronLeft, ChevronRight, Check } from 'lucide-react';
-import Button from '../../components/ui/Button.jsx';
+import api from '../../services/api.js';
 
 const EMPTY = {
   // Step 1 — Basic Info
   salutation:   'Mr',
-  firstName:    '',
-  lastName:     '',
+  fullName:     '',
   phone:        '',
   altPhone:     '',
   brideGroom:   '',
@@ -50,6 +49,7 @@ export default function LeadFormModal({ open, onClose, initial, onSave, lookups 
   const [form, setForm]     = useState(EMPTY);
   const [saving, setSaving] = useState(false);
   const [error, setError]   = useState('');
+  const [contacts, setContacts] = useState([]);
 
   useEffect(() => {
     if (open) {
@@ -59,8 +59,7 @@ export default function LeadFormModal({ open, onClose, initial, onSave, lookups 
         setForm({
           ...EMPTY,
           salutation:    initial.salutation    || 'Mr',
-          firstName:     initial.firstName     || '',
-          lastName:      initial.lastName      || '',
+          fullName:      [initial.firstName, initial.lastName].filter(Boolean).join(' '),
           phone:         initial.phone         || '',
           altPhone:      initial.altPhone      || '',
           brideGroom:    initial.brideGroom    || '',
@@ -80,7 +79,7 @@ export default function LeadFormModal({ open, onClose, initial, onSave, lookups 
           statusId:      initial.statusId      || '',
           wonLossStatus: initial.wonLossStatus || 'PENDING',
           followUpDate:  initial.followUpDate  || '',
-          dueDate:       initial.dueDate       || EMPTY.dueDate,
+          dueDate:       initial.dueDate ? String(initial.dueDate).slice(0, 10) : EMPTY.dueDate,
           expectedWeight: initial.expectedWeight || '',
           expectedAmount: initial.expectedAmount || '',
           response:      initial.response      || '',
@@ -94,14 +93,35 @@ export default function LeadFormModal({ open, onClose, initial, onSave, lookups 
     }
   }, [open, initial]);
 
+  // Load existing customers the first time "Select Existing Customer" is switched on
+  useEffect(() => {
+    if (open && form.selectExisting && contacts.length === 0) {
+      api.get('/contacts', { params: { limit: 100 } })
+        .then((r) => setContacts(r.data.data || []))
+        .catch(() => setError('Could not load existing customers'));
+    }
+  }, [open, form.selectExisting, contacts.length]);
+
   if (!open) return null;
+
+  const pickContact = (id) => {
+    const c = contacts.find((x) => x.id === id);
+    if (!c) return;
+    setForm((f) => ({
+      ...f,
+      contactId: id,
+      fullName:  `${c.firstName} ${c.lastName}`.trim(),
+      phone:     c.phone || '',
+      email:     c.email || '',
+    }));
+  };
 
   const set = (k, v) => setForm((f) => ({ ...f, [k]: v }));
   const setE = (k) => (e) => set(k, e.target.value);
 
   // Step validation
   const canNext = () => {
-    if (step === 1) return form.firstName.trim() && form.phone.trim();
+    if (step === 1) return form.fullName.trim() && form.phone.trim();
     if (step === 2) return true;
     return true;
   };
@@ -117,10 +137,11 @@ export default function LeadFormModal({ open, onClose, initial, onSave, lookups 
   const handleCreate = async () => {
     setError(''); setSaving(true);
     try {
-      // Map form fields to API shape
+      // The form has one "Full Name" box: first word → first name, the rest → last name
+      const [firstName, ...rest] = form.fullName.trim().split(/\s+/);
       await onSave({
-        firstName:    form.firstName.trim(),
-        lastName:     form.lastName.trim(),
+        firstName,
+        lastName:     rest.join(' '),
         phone:        form.phone.trim() || null,
         email:        form.email.trim() || null,
         sourceId:     form.sourceId   || null,
@@ -131,8 +152,8 @@ export default function LeadFormModal({ open, onClose, initial, onSave, lookups 
         dueDate:      form.dueDate    || null,
         rating:       null,
         tagNames:     form.tagNames,
-        // extra fields stored as notes for now (can be extended in schema later)
-        notes: [
+        // Extra details are packed into notes on create; on edit the notes stay exactly as typed
+        notes: initial ? (form.notes.trim() || null) : [
           form.area          && `Area: ${form.area}`,
           form.gender        && `Gender: ${form.gender}`,
           form.religion      && `Religion: ${form.religion}`,
@@ -218,13 +239,26 @@ export default function LeadFormModal({ open, onClose, initial, onSave, lookups 
                 </button>
               </div>
 
+              {form.selectExisting && (
+                <Field label="EXISTING CUSTOMER">
+                  <select value={form.contactId || ''} onChange={(e) => pickContact(e.target.value)} className={INPUT}>
+                    <option value="">Select a customer…</option>
+                    {contacts.map((c) => (
+                      <option key={c.id} value={c.id}>
+                        {c.firstName} {c.lastName}{c.phone ? ` (${c.phone})` : ''}
+                      </option>
+                    ))}
+                  </select>
+                </Field>
+              )}
+
               <div className="grid grid-cols-2 gap-4">
                 <Field label="CUSTOMER NAME *">
                   <div className="flex gap-2">
                     <select value={form.salutation} onChange={setE('salutation')} className={`${INPUT} w-24`}>
                       <option>Mr</option><option>Mrs</option><option>Ms</option><option>Dr</option>
                     </select>
-                    <input value={form.firstName} onChange={setE('firstName')}
+                    <input value={form.fullName} onChange={setE('fullName')}
                       className={`${INPUT} flex-1`} placeholder="Full Name" required />
                   </div>
                 </Field>

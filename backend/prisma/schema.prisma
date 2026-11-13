@@ -262,6 +262,7 @@ model Lead {
   sentiment     Sentiment   @default(NEUTRAL)
   rating        Int?
   dueDate       DateTime?
+  notes         String?
   isWon         Boolean     @default(false)
   isLost        Boolean     @default(false)
   isConverted   Boolean     @default(false)

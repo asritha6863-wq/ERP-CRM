@@ -80,10 +80,10 @@ export async function getLead(user, id) {
 
 export async function createLead(user, data) {
   const { firstName, lastName, email, phone, sourceId, statusId, branchId,
-          assignedToId, tagNames = [], sentiment, rating, channel, companyId } = data;
+          assignedToId, tagNames = [], sentiment, rating, channel, companyId,
+          dueDate, notes } = data;
 
   if (!firstName?.trim()) throw { statusCode: 400, message: 'firstName is required' };
-  if (!lastName?.trim())  throw { statusCode: 400, message: 'lastName is required' };
 
   // Resolve source to get defaultChannel
   let derivedChannel = channel || 'OUTDOOR';
@@ -113,7 +113,7 @@ export async function createLead(user, data) {
       contactId: contactId || null,
       channel:   derivedChannel,
       firstName: firstName.trim(),
-      lastName:  lastName.trim(),
+      lastName:  (lastName || '').trim(),
       email:     email?.trim() || null,
       phone:     phone?.trim() || null,
       sourceId:  sourceId || null,
@@ -122,6 +122,8 @@ export async function createLead(user, data) {
       assignedToId: assignedToId || null,
       sentiment: sentiment || 'NEUTRAL',
       rating:    rating ? +rating : null,
+      dueDate:   dueDate ? new Date(dueDate) : null,
+      notes:     notes?.trim() || null,
       tags:      { connect: tags.map((t) => ({ id: t.id })) },
     },
     include: LEAD_INCLUDE,
@@ -144,7 +146,7 @@ export async function updateLead(user, id, data) {
   if (!existing) throw { statusCode: 404, message: 'Lead not found' };
 
   const { firstName, lastName, email, phone, sourceId, statusId, branchId,
-          assignedToId, tagNames, sentiment, rating } = data;
+          assignedToId, tagNames, sentiment, rating, dueDate, notes } = data;
 
   // Duplicate phone check (exclude self)
   if (phone?.trim() && phone.trim() !== existing.phone) {
@@ -178,6 +180,8 @@ export async function updateLead(user, id, data) {
       ...(assignedToId !== undefined && { assignedToId }),
       ...(sentiment  && { sentiment }),
       ...(rating     !== undefined && { rating: rating ? +rating : null }),
+      ...(dueDate    !== undefined && { dueDate: dueDate ? new Date(dueDate) : null }),
+      ...(notes      !== undefined && { notes: notes?.trim() || null }),
       ...(tags && { tags: { set: tags.map((t) => ({ id: t.id })) } }),
     },
     include: LEAD_INCLUDE,
