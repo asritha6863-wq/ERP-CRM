@@ -22,7 +22,7 @@ const ROW_INCLUDE = {
     where:   { stage: { name: { equals: 'Won', mode: 'insensitive' } } },
     orderBy: { updatedAt: 'desc' },
     take:    1,
-    select:  { updatedAt: true },
+    select:  { updatedAt: true, value: true },
   },
 };
 
@@ -34,7 +34,7 @@ export const COLUMNS = [
   ['marriageDate', 'Marriage Date'], ['owner', 'Owner'], ['assignedTo', 'Assigned To'],
   ['expectedWeight', 'Expected Weight (g)'], ['expectedAmount', 'Expected Amount'],
   ['dnf', 'Date Not Fixed'], ['lossReason', 'Loss Reason'],
-  ['area', 'Area'], ['purchaseDate', 'Purchase Date'],
+  ['area', 'Area'], ['purchaseDate', 'Purchase Date'], ['purchaseAmount', 'Purchase Amount'],
 ];
 
 function outcomeOf(l) {
@@ -67,6 +67,7 @@ function toRow(l, firstStageName) {
     lossReason:     l.lossReason || '',
     area:           l.area || '',
     purchaseDate:   l.isWon ? ymd(l.deals?.[0]?.updatedAt) : '',
+    purchaseAmount: l.isWon && l.deals?.[0] ? l.deals[0].value : '',
   };
 }
 
@@ -90,6 +91,16 @@ async function buildWhere(user, q) {
     ] });
   }
   if (q.phone?.trim()) parts.push({ phone: { contains: q.phone.trim() } });
+
+  // Free-text search: every word must match the name, phone or area
+  for (const term of (q.search || '').trim().split(/\s+/).filter(Boolean)) {
+    parts.push({ OR: [
+      { firstName: { contains: term, mode: 'insensitive' } },
+      { lastName:  { contains: term, mode: 'insensitive' } },
+      { phone:     { contains: term } },
+      { area:      { contains: term, mode: 'insensitive' } },
+    ] });
+  }
 
   const range = (field, from, to) => {
     const r = {};
@@ -133,13 +144,14 @@ export async function leadSummary(user, q) {
   const where = await buildWhere(user, q);
   const first = await firstStage();
 
-  const [total, won, lost, cancelled, pending, weight, byStage, byPriority, reasons, stages] = await Promise.all([
+  const [total, won, lost, cancelled, pending, weight, valueAgg, byStage, byPriority, reasons, stages] = await Promise.all([
     prisma.lead.count({ where }),
     prisma.lead.count({ where: and(where, { isWon: true }) }),
     prisma.lead.count({ where: and(where, { isLost: true }) }),
     prisma.lead.count({ where: and(where, cancelledWhere) }),
     prisma.lead.count({ where: and(where, { isWon: false, isLost: false, NOT: cancelledWhere }) }),
     prisma.lead.aggregate({ where: and(where, { expectedWeight: { not: null } }), _avg: { expectedWeight: true } }),
+    prisma.lead.aggregate({ where, _sum: { expectedAmount: true } }),
     prisma.lead.groupBy({ by: ['stageId'], where, _count: { _all: true } }),
     prisma.lead.groupBy({ by: ['priority'], where, _count: { _all: true } }),
     prisma.lead.groupBy({
@@ -170,6 +182,7 @@ export async function leadSummary(user, q) {
       total, won, lost, pending, cancelled,
       conversionRate: total > 0 ? (won / total) * 100 : 0,
       avgWeight: weight._avg.expectedWeight,
+      expectedValue: valueAgg._sum.expectedAmount || 0,
     },
     byStage: stageRows,
     byPriority: ['HIGH', 'MEDIUM', 'LOW'].map((k) => ({ name: k, count: prio[k] || 0 })),
