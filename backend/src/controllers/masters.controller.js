@@ -59,6 +59,27 @@ const ENTITY_MAP = {
     updateFields: ['name'],
     hasIsActive: true,
   },
+  'areas': {
+    model: 'area',
+    searchFields: ['name'],
+    createFields: ['name'],
+    updateFields: ['name'],
+    hasIsActive: true,
+  },
+  'locations': {
+    model: 'location',
+    searchFields: ['name'],
+    createFields: ['name'],
+    updateFields: ['name'],
+    hasIsActive: true,
+  },
+  'channels': {
+    model: 'channel',
+    searchFields: ['name'],
+    createFields: ['name'],
+    updateFields: ['name'],
+    hasIsActive: true,
+  },
 };
 
 function getConfig(entity, res) {

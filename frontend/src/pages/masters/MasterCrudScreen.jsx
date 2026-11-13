@@ -193,6 +193,16 @@ export default function MasterCrudScreen({ config }) {
                     placeholder="#6b7280"
                   />
                 </div>
+              ) : field.type === 'select' ? (
+                <select
+                  value={form[field.key] ?? field.defaultValue ?? ''}
+                  onChange={(e) => setForm((f) => ({ ...f, [field.key]: e.target.value }))}
+                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                >
+                  {(field.options || []).map((o) => (
+                    <option key={o.value} value={o.value}>{o.label}</option>
+                  ))}
+                </select>
               ) : (
                 <input
                   type={field.type || 'text'}

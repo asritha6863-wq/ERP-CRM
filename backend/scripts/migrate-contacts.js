@@ -41,15 +41,24 @@ async function main() {
 
   // Update existing branches to link to this company (if not already linked)
   const unlinkedBranches = await prisma.branch.findMany({ where: { companyId: null } });
+  let linkedCount = 0;
   for (const branch of unlinkedBranches) {
-    await prisma.branch.update({
-      where: { id: branch.id },
-      data: { companyId: company.id },
+    // Check if a branch with this name already exists under this company (created by seed)
+    const duplicate = await prisma.branch.findFirst({
+      where: { name: branch.name, companyId: company.id, NOT: { id: branch.id } },
     });
+    if (duplicate) {
+      // Delete the old unlinked branch — the seed already created a proper one
+      await prisma.branch.delete({ where: { id: branch.id } });
+    } else {
+      await prisma.branch.update({
+        where: { id: branch.id },
+        data: { companyId: company.id },
+      });
+      linkedCount++;
+    }
   }
-  if (unlinkedBranches.length) {
-    console.log(`✓ Linked ${unlinkedBranches.length} branch(es) to company`);
-  }
+  if (linkedCount) console.log(`✓ Linked ${linkedCount} branch(es) to company`);
 
   // ── Step 2: Default ContactTypes ───────────────────
   for (const name of ['Customer', 'Employee', 'Supplier']) {
