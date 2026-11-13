@@ -26,7 +26,7 @@ export const listUsers = asyncHandler(async (req, res) => {
       orderBy: { createdAt: 'desc' },
       select: {
         id: true, name: true, email: true, role: true,
-        branchId: true, isActive: true, createdAt: true,
+        branchId: true, isActive: true, createdAt: true, dateOfBirth: true,
         branch: { select: { id: true, name: true } },
       },
     }),
@@ -52,7 +52,7 @@ export const getUser = asyncHandler(async (req, res) => {
 
 // POST /api/users
 export const createUser = asyncHandler(async (req, res) => {
-  const { name, email, password, role, branchId } = req.body;
+  const { name, email, password, role, branchId, dateOfBirth } = req.body;
 
   if (!name?.trim())     return res.status(400).json({ error: 'name is required' });
   if (!email?.trim())    return res.status(400).json({ error: 'email is required' });
@@ -74,6 +74,7 @@ export const createUser = asyncHandler(async (req, res) => {
       password: hashPassword(password),
       role,
       branchId: branchId || null,
+      dateOfBirth: dateOfBirth ? new Date(`${String(dateOfBirth).slice(0, 10)}T00:00:00.000Z`) : null,
     },
     select: {
       id: true, name: true, email: true, role: true,
@@ -86,7 +87,7 @@ export const createUser = asyncHandler(async (req, res) => {
 
 // PUT /api/users/:id
 export const updateUser = asyncHandler(async (req, res) => {
-  const { name, email, role, branchId, password } = req.body;
+  const { name, email, role, branchId, password, dateOfBirth } = req.body;
 
   const existing = await prisma.user.findUnique({ where: { id: req.params.id } });
   if (!existing) return res.status(404).json({ error: 'User not found' });
@@ -109,6 +110,9 @@ export const updateUser = asyncHandler(async (req, res) => {
   if (role)     data.role     = role;
   if (password) data.password = hashPassword(password);
   if (branchId !== undefined) data.branchId = branchId || null;
+  if (dateOfBirth !== undefined) {
+    data.dateOfBirth = dateOfBirth ? new Date(`${String(dateOfBirth).slice(0, 10)}T00:00:00.000Z`) : null;
+  }
 
   const user = await prisma.user.update({
     where: { id: req.params.id },

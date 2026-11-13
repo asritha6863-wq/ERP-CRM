@@ -5,6 +5,7 @@ import api from '../../services/api.js';
 const EMPTY = {
   firstName: '', lastName: '', phone: '', email: '',
   companyId: '', typeId: '', branchId: '', assignedToId: '', rating: '',
+  dateOfBirth: '', anniversaryDate: '',
 };
 
 export default function ContactFormModal({ open, onClose, initial, onSave, lookups }) {
@@ -26,6 +27,8 @@ export default function ContactFormModal({ open, onClose, initial, onSave, looku
         branchId:     initial.branchId     || '',
         assignedToId: initial.assignedToId || '',
         rating:       initial.rating       || '',
+        dateOfBirth:     initial.dateOfBirth     ? initial.dateOfBirth.slice(0, 10)     : '',
+        anniversaryDate: initial.anniversaryDate ? initial.anniversaryDate.slice(0, 10) : '',
       } : EMPTY);
       setError('');
       setPhoneHint('');
@@ -148,6 +151,16 @@ export default function ContactFormModal({ open, onClose, initial, onSave, looku
                 <option value="">No rating</option>
                 {[1, 2, 3, 4, 5].map((r) => <option key={r} value={r}>{r} ★</option>)}
               </select>
+            </Field>
+          </div>
+
+          {/* Date of Birth + Anniversary (used by Celebration Hub) */}
+          <div className="grid grid-cols-2 gap-4">
+            <Field label="Date of Birth">
+              <input type="date" value={form.dateOfBirth} onChange={set('dateOfBirth')} className={INPUT} />
+            </Field>
+            <Field label="Anniversary">
+              <input type="date" value={form.anniversaryDate} onChange={set('anniversaryDate')} className={INPUT} />
             </Field>
           </div>
 

@@ -16,7 +16,7 @@ const ROLE_COLORS = {
   SALES:   'bg-teal-100 text-teal-700',
 };
 
-const EMPTY_FORM = { name: '', email: '', password: '', role: 'SALES', branchId: '' };
+const EMPTY_FORM = { name: '', email: '', password: '', role: 'SALES', branchId: '', dateOfBirth: '' };
 
 export default function UsersScreen() {
   const {
@@ -48,7 +48,7 @@ export default function UsersScreen() {
   };
 
   const openEdit = (user) => {
-    setForm({ name: user.name, email: user.email, password: '', role: user.role, branchId: user.branchId || '' });
+    setForm({ name: user.name, email: user.email, password: '', role: user.role, branchId: user.branchId || '', dateOfBirth: user.dateOfBirth ? user.dateOfBirth.slice(0, 10) : '' });
     setEditing(user);
     setFormError('');
     setModalOpen(true);
@@ -177,6 +177,10 @@ export default function UsersScreen() {
               <option value="">— None —</option>
               {branches.map((b) => <option key={b.id} value={b.id}>{b.name}</option>)}
             </select>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Date of Birth</label>
+            <input type="date" value={form.dateOfBirth} onChange={set('dateOfBirth')} className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
           </div>
         </div>
       </ModalForm>

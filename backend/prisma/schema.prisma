@@ -84,6 +84,7 @@ model User {
   deals       Deal[]      @relation("DealOwner")
   visits      Visit[]
 
+  dateOfBirth      DateTime?
   reminders        Reminder[] @relation("ReminderAssignee")
   createdReminders Reminder[] @relation("ReminderCreator")
   campaigns        Campaign[]
@@ -225,6 +226,9 @@ model Contact {
   leads     Lead[]
   deals     Deal[]
   reminders Reminder[]
+
+  dateOfBirth     DateTime?
+  anniversaryDate DateTime?
 
   @@unique([phone, companyId])
   @@index([branchId])

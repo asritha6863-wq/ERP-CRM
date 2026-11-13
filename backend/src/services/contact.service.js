@@ -22,6 +22,13 @@ function buildScope(user, { companyId, branchId } = {}) {
   return filter;
 }
 
+// 'YYYY-MM-DD' (or ISO) → Date at UTC midnight; empty → null
+function toDate(v) {
+  if (!v) return null;
+  const d = new Date(String(v).slice(0, 10) + 'T00:00:00.000Z');
+  return Number.isNaN(d.getTime()) ? null : d;
+}
+
 function normalisePhone(phone) {
   return phone?.replace(/[\s\-().+]/g, '') || null;
 }
@@ -84,6 +91,7 @@ export async function createContact(user, data) {
   const {
     firstName, lastName, phone, email,
     companyId, typeId, branchId, assignedToId, rating,
+    dateOfBirth, anniversaryDate,
   } = data;
 
   if (!firstName?.trim()) throw { statusCode: 400, message: 'firstName is required' };
@@ -111,6 +119,8 @@ export async function createContact(user, data) {
       branchId:   branchId || null,
       assignedToId: assignedToId || null,
       rating:     rating ? +rating : null,
+      dateOfBirth:     toDate(dateOfBirth),
+      anniversaryDate: toDate(anniversaryDate),
     },
     include: CONTACT_INCLUDE,
   });
@@ -123,6 +133,7 @@ export async function updateContact(user, id, data) {
   const {
     firstName, lastName, phone, email,
     typeId, branchId, assignedToId, rating,
+    dateOfBirth, anniversaryDate,
   } = data;
 
   const normPhone = phone !== undefined ? normalisePhone(phone) : undefined;
@@ -146,6 +157,8 @@ export async function updateContact(user, id, data) {
       ...(branchId     !== undefined && { branchId }),
       ...(assignedToId !== undefined && { assignedToId }),
       ...(rating       !== undefined && { rating: rating ? +rating : null }),
+      ...(dateOfBirth     !== undefined && { dateOfBirth: toDate(dateOfBirth) }),
+      ...(anniversaryDate !== undefined && { anniversaryDate: toDate(anniversaryDate) }),
       requiresReview: normPhone ? false : existing.requiresReview,
     },
     include: CONTACT_INCLUDE,
