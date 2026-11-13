@@ -93,6 +93,7 @@ model User {
   dateOfBirth      DateTime?
   createdLeads     Lead[]     @relation("LeadCreator")
   feedbackServed   Feedback[] @relation("FeedbackSalesman")
+  feedbackCalls    FeedbackRequest[] @relation("FeedbackRequestCompleter")
   reminders        Reminder[] @relation("ReminderAssignee")
   createdReminders Reminder[] @relation("ReminderCreator")
   campaigns        Campaign[]
@@ -256,6 +257,7 @@ model Lead {
   contactId     String?
   contact       Contact?    @relation(fields: [contactId], references: [id])
   leadNo        Int         @default(autoincrement()) @unique
+  feedbackRequests FeedbackRequest[]
   channel       LeadChannel @default(OUTDOOR)
   firstName     String
   lastName      String
@@ -418,6 +420,39 @@ model Campaign {
   @@index([scheduleDate])
 }
 
+// ── Feedback call queue ─────────────────────────────────
+
+enum FeedbackRequestKind {
+  REGISTRATION
+  PURCHASE
+}
+
+enum FeedbackRequestStatus {
+  PENDING
+  COMPLETED
+}
+
+model FeedbackRequest {
+  id              String                @id @default(cuid())
+  leadId          String
+  lead            Lead                  @relation(fields: [leadId], references: [id])
+  kind            FeedbackRequestKind
+  refNo           String?
+  status          FeedbackRequestStatus @default(PENDING)
+  attempts        Int                   @default(0)
+  lastAttemptAt   DateTime?
+  lastAttemptNote String?
+  feedbackId      String?               @unique
+  feedback        Feedback?             @relation(fields: [feedbackId], references: [id])
+  completedAt     DateTime?
+  completedById   String?
+  completedBy     User?                 @relation("FeedbackRequestCompleter", fields: [completedById], references: [id])
+  createdAt       DateTime              @default(now())
+
+  @@index([status, createdAt])
+  @@index([leadId])
+}
+
 // ── Lead-Linked Entities ────────────────────────────────
 
 model Visit {
@@ -447,6 +482,7 @@ model Activity {
 }
 
 model Feedback {
+  request    FeedbackRequest?
   invoiceRef String?
   salesmanId String?
   salesman   User?   @relation("FeedbackSalesman", fields: [salesmanId], references: [id])

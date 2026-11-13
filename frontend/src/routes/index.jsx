@@ -50,6 +50,7 @@ import InstoreLeadReportPage from '../pages/reports/InstoreLeadReportPage.jsx';
 import BdeReportPage        from '../pages/reports/BdeReportPage.jsx';
 import FeedbackReportPage   from '../pages/reports/FeedbackReportPage.jsx';
 import IncentiveReportPage  from '../pages/reports/IncentiveReportPage.jsx';
+import CustomerFeedPage     from '../pages/activity/CustomerFeedPage.jsx';
 import CustomerProfilePage  from '../pages/customers/CustomerProfilePage.jsx';
 
 export default function AppRoutes() {
@@ -90,7 +91,7 @@ export default function AppRoutes() {
           <Route path="/reports/customer-feedback"   element={<FeedbackReportPage />} />
           <Route path="/reports/incentive"           element={<IncentiveReportPage />} />
           <Route path="/activity"        element={<ComingSoon name="Activity" />} />
-          <Route path="/activity/feed"   element={<ComingSoon name="Customer Feed" />} />
+          <Route path="/activity/feed"   element={<CustomerFeedPage />} />
           <Route path="/activity/tasks"  element={<ComingSoon name="Tasks" />} />
           <Route path="/visits"                   element={<ComingSoon name="Visits" />} />
           <Route path="/visits/management"        element={<ComingSoon name="Visit Management" />} />

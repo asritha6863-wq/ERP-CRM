@@ -1,6 +1,7 @@
 import prisma from '../utils/prisma.js';
 import { getScopeFilter } from '../middleware/scope.middleware.js';
 import { findOrCreateContact } from './contact.service.js';
+import { ensureFeedbackRequest } from './feedbackRequest.service.js';
 
 const LEAD_INCLUDE = {
   source:     { select: { id: true, name: true } },
@@ -178,6 +179,9 @@ export async function createLead(user, data) {
       description: `Lead created by ${user.name}`,
     },
   });
+
+  // A new registration gets a feedback call queued
+  await ensureFeedbackRequest(prisma, { leadId: lead.id, kind: 'REGISTRATION', refNo: 'NEW REGISTRATION' });
 
   return lead;
 }
@@ -369,6 +373,8 @@ export async function winLead(user, id, { value = 0, invoiceRef }) {
         invoiceRef: invoiceRef || null,
       },
     });
+
+    await ensureFeedbackRequest(tx, { leadId: id, kind: 'PURCHASE', refNo: invoiceRef?.trim() || 'PURCHASE' });
 
     await tx.activity.create({
       data: {
