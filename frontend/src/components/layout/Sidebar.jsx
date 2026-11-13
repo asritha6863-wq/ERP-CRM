@@ -119,6 +119,8 @@ export default function Sidebar() {
   const isInAnalytics     = location.pathname.startsWith('/analytics');
   const isInReports       = location.pathname.startsWith('/reports');
   const isInActivity      = location.pathname.startsWith('/activity');
+  const isInVisits        = location.pathname.startsWith('/visits');
+  const isInAppointments  = location.pathname.startsWith('/appointments');
 
   const [openGroups, setOpenGroups] = useState(() => ({
     'sales-pipeline':        isInSalesPipeline,
@@ -128,6 +130,8 @@ export default function Sidebar() {
     'performance-analytics': isInAnalytics,
     'reports':               isInReports,
     'activity':              isInActivity,
+    'visits':                isInVisits,
+    'appointments':          isInAppointments,
   }));
 
   const toggleGroup = (id) => setOpenGroups((s) => ({ ...s, [id]: !s[id] }));

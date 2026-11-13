@@ -75,8 +75,11 @@ export default function AppRoutes() {
           <Route path="/activity"        element={<ComingSoon name="Activity" />} />
           <Route path="/activity/feed"   element={<ComingSoon name="Customer Feed" />} />
           <Route path="/activity/tasks"  element={<ComingSoon name="Tasks" />} />
-          <Route path="/visits"        element={<ComingSoon name="Visits" />} />
-          <Route path="/appointments"  element={<ComingSoon name="Appointments" />} />
+          <Route path="/visits"                   element={<ComingSoon name="Visits" />} />
+          <Route path="/visits/management"        element={<ComingSoon name="Visit Management" />} />
+          <Route path="/visits/report"            element={<ComingSoon name="Visit Report" />} />
+          <Route path="/appointments"             element={<ComingSoon name="Appointments" />} />
+          <Route path="/appointments/desk"        element={<ComingSoon name="Appointment Desk" />} />
 
           {/* Masters — Admin only */}
           <Route path="/masters/companies"           element={<RoleGuard roles={['ADMIN']}><MasterCrudScreen config={COMPANIES_CONFIG} /></RoleGuard>} />
