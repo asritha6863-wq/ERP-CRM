@@ -3,7 +3,7 @@ import {
   LayoutDashboard, Users, UserCheck, KanbanSquare, Settings,
   Gem, TrendingUp, BarChart2, FileText, Activity,
   MapPin, Calendar, ChevronDown, ChevronRight, Store, BookUser,
-  Settings2,
+  Settings2, Brain, MessageSquare, PieChart, Heart,
 } from 'lucide-react';
 import { useState } from 'react';
 import { useAuth } from '../../context/AuthContext.jsx';
@@ -45,7 +45,19 @@ const NAV = [
       { id: 'lead-status',     label: 'Lead Status Master', path: '/masters/lead-statuses',icon: Settings2 },
     ],
   },
-  { id: 'customers',    label: 'Customers',    path: '/customers',    icon: UserCheck,  roles: ALL_ROLES },
+  {
+    id: 'customer-management',
+    label: 'Customer Management',
+    icon: UserCheck,
+    roles: ALL_ROLES,
+    children: [
+      { id: 'customers',             label: 'Customers',              path: '/customers',              icon: UserCheck   },
+      { id: 'customer-intelligence', label: 'Customer Intelligence',  path: '/customer-intelligence',  icon: Brain       },
+      { id: 'interaction-logs',      label: 'Interaction Logs',       path: '/interaction-logs',       icon: MessageSquare },
+      { id: 'customer-segmentation', label: 'Customer Segmentation',  path: '/customer-segmentation',  icon: PieChart    },
+      { id: 'marriage-purchase',     label: 'Marriage Purchase',      path: '/marriage-purchase',      icon: Heart       },
+    ],
+  },
   { id: 'engagement',   label: 'Engagement',   path: '/engagement',   icon: TrendingUp, roles: ALL_ROLES },
   { id: 'analytics',    label: 'Analytics',    path: '/analytics',    icon: BarChart2,  roles: ALL_ROLES },
   { id: 'reports',      label: 'Reports',      path: '/reports',      icon: FileText,   roles: ALL_ROLES },
@@ -63,10 +75,12 @@ export default function Sidebar() {
   const location    = useLocation();
 
   const isInSalesPipeline = SALES_PIPELINE_PATHS.some((p) => location.pathname.startsWith(p));
+  const isInCustomerMgmt  = ['/customers', '/customer-intelligence', '/interaction-logs', '/customer-segmentation', '/marriage-purchase'].some((p) => location.pathname.startsWith(p));
 
   const [openGroups, setOpenGroups] = useState(() => ({
-    'sales-pipeline': isInSalesPipeline,
-    'masters': location.pathname.startsWith('/masters'),
+    'sales-pipeline':      isInSalesPipeline,
+    'masters':             location.pathname.startsWith('/masters'),
+    'customer-management': isInCustomerMgmt,
   }));
 
   const toggleGroup = (id) => setOpenGroups((s) => ({ ...s, [id]: !s[id] }));

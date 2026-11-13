@@ -52,7 +52,11 @@ export default function AppRoutes() {
           <Route path="/leads"         element={<LeadsPage />} />
           <Route path="/instore-leads" element={<InstoreLeadsPage />} />
           <Route path="/leads/:id"     element={<LeadDetailPage />} />
-          <Route path="/customers"     element={<CustomersPage />} />
+          <Route path="/customers"             element={<CustomersPage />} />
+          <Route path="/customer-intelligence" element={<ComingSoon name="Customer Intelligence" />} />
+          <Route path="/interaction-logs"      element={<ComingSoon name="Interaction Logs" />} />
+          <Route path="/customer-segmentation" element={<ComingSoon name="Customer Segmentation" />} />
+          <Route path="/marriage-purchase"     element={<ComingSoon name="Marriage Purchase" />} />
           <Route path="/pipeline"      element={<PipelinePage />} />
           <Route path="/engagement"    element={<ComingSoon name="Engagement" />} />
           <Route path="/analytics"     element={<ComingSoon name="Analytics" />} />
