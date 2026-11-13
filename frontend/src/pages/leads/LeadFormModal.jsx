@@ -255,11 +255,11 @@ export default function LeadFormModal({ open, onClose, initial, onSave, lookups 
               <div className="grid grid-cols-2 gap-4">
                 <Field label="CUSTOMER NAME *">
                   <div className="flex gap-2">
-                    <select value={form.salutation} onChange={setE('salutation')} className={`${INPUT} w-24`}>
+                    <select value={form.salutation} onChange={setE('salutation')} className={`${INPUT_BASE} w-24 shrink-0`}>
                       <option>Mr</option><option>Mrs</option><option>Ms</option><option>Dr</option>
                     </select>
                     <input value={form.fullName} onChange={setE('fullName')}
-                      className={`${INPUT} flex-1`} placeholder="Full Name" required />
+                      className={`${INPUT_BASE} flex-1 min-w-0`} placeholder="Full Name" required />
                   </div>
                 </Field>
 
@@ -267,7 +267,7 @@ export default function LeadFormModal({ open, onClose, initial, onSave, lookups 
                   <div className="flex gap-1">
                     <span className="flex items-center px-3 bg-gray-100 border border-gray-300 rounded-l-lg text-sm text-gray-600">+91</span>
                     <input value={form.phone} onChange={setE('phone')}
-                      className={`${INPUT} rounded-l-none flex-1`} placeholder="Mobile number" type="tel" required />
+                      className={`${INPUT_BASE} rounded-l-none flex-1 min-w-0`} placeholder="Mobile number" type="tel" required />
                   </div>
                 </Field>
 
@@ -478,4 +478,6 @@ function Field({ label, children, className = '' }) {
   );
 }
 
-const INPUT = 'w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-pink-400 bg-white';
+// INPUT_BASE has no width so it can be combined with fixed/flex widths; INPUT is full width
+const INPUT_BASE = 'rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-pink-400 bg-white';
+const INPUT = `w-full ${INPUT_BASE}`;
