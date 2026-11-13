@@ -61,10 +61,11 @@ const ENTITY_MAP = {
   },
   'areas': {
     model: 'area',
-    searchFields: ['name'],
-    createFields: ['name'],
-    updateFields: ['name'],
+    searchFields: ['name', 'pincode'],
+    createFields: ['name', 'branchId', 'pincode', 'locations'],
+    updateFields: ['name', 'branchId', 'pincode', 'locations'],
     hasIsActive: true,
+    include: { branch: { select: { id: true, name: true } } },
   },
   'locations': {
     model: 'location',
@@ -110,7 +111,7 @@ export const listMaster = asyncHandler(async (req, res) => {
     : {};
 
   const [items, total] = await Promise.all([
-    prisma[cfg.model].findMany({ where, skip, take: limit, orderBy: { createdAt: 'desc' } }),
+    prisma[cfg.model].findMany({ where, skip, take: limit, orderBy: { createdAt: 'desc' }, ...(cfg.include ? { include: cfg.include } : {}) }),
     prisma[cfg.model].count({ where }),
   ]);
 

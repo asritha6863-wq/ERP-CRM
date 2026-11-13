@@ -19,10 +19,11 @@
  * }
  */
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Plus, Search, Pencil, ToggleLeft, ToggleRight, Maximize2, Check } from 'lucide-react';
 import useMaster from '../../hooks/useMaster.js';
 import Pagination from '../../components/ui/Pagination.jsx';
+import api from '../../services/api.js';
 
 // Map tailwind-name colours to hex for dot display
 const COLOR_MAP = {
@@ -58,6 +59,15 @@ export default function CRMMasterScreen({ config }) {
   const [form, setForm]           = useState({});
   const [saving, setSaving]       = useState(false);
   const [formError, setFormError] = useState('');
+  const [branches, setBranches]   = useState([]);
+
+  useEffect(() => {
+    // Load branches for Area master branch dropdown
+    const needsBranch = (config.fields || []).some((f) => f.type === 'branch');
+    if (needsBranch) {
+      api.get('/masters/branches').then((r) => setBranches(r.data.data || [])).catch(() => {});
+    }
+  }, [config.fields]);
 
   const openCreate = () => {
     const defaults = Object.fromEntries(
@@ -312,6 +322,17 @@ export default function CRMMasterScreen({ config }) {
                     >
                       {(field.options || []).map((o) => (
                         <option key={o.value} value={o.value}>{o.label}</option>
+                      ))}
+                    </select>
+                  ) : field.type === 'branch' ? (
+                    <select
+                      value={form[field.key] ?? ''}
+                      onChange={(e) => setForm((f) => ({ ...f, [field.key]: e.target.value }))}
+                      className={INPUT}
+                    >
+                      <option value="">No branch</option>
+                      {branches.map((b) => (
+                        <option key={b.id} value={b.id}>{b.name}</option>
                       ))}
                     </select>
                   ) : (

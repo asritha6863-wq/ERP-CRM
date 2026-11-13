@@ -100,6 +100,7 @@ model Branch {
   leads     Lead[]
   customers Customer[]
   contacts  Contact[]
+  areas     Area[]
 
   @@unique([name, companyId])
 }
@@ -169,6 +170,10 @@ model Tag {
 model Area {
   id        String   @id @default(cuid())
   name      String   @unique
+  branchId  String?
+  branch    Branch?  @relation(fields: [branchId], references: [id])
+  pincode   String?
+  locations String?  // comma-separated location names
   isActive  Boolean  @default(true)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

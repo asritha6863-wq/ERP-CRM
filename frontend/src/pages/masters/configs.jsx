@@ -141,12 +141,30 @@ export const AREA_MASTER_CONFIG = {
   singular: 'Area',
   hasIsActive: true,
   hasCode: true,
+  searchPlaceholder: 'Search areas, pincode, locations…',
   columns: [
-    { key: 'name', header: 'Area Name', bold: true },
+    { key: 'name',      header: 'Area Name',  bold: true },
+    {
+      key: 'branch',
+      header: 'Branch',
+      render: (_, row) => row.branch
+        ? <span className="text-sm text-gray-700">{row.branch.name}</span>
+        : <span className="text-gray-300 text-sm">—</span>,
+    },
+    { key: 'pincode',   header: 'Pincode',    render: (v) => v || <span className="text-gray-300">—</span> },
+    {
+      key: 'locations',
+      header: 'Locations',
+      render: (v) => v
+        ? <span className="inline-flex items-center px-2 py-0.5 rounded bg-gray-100 text-gray-700 text-xs font-medium uppercase">{v}</span>
+        : <span className="text-gray-400 text-xs italic">No locations</span>,
+    },
   ],
   fields: [
-    { key: 'name',    label: 'Area Name', required: true },
-    { key: 'pincode', label: 'Pincode', placeholder: 'e.g. 673027' },
+    { key: 'name',      label: 'Area Name',   required: true },
+    { key: 'branchId',  label: 'Branch',      type: 'branch' },
+    { key: 'pincode',   label: 'Pincode',     placeholder: 'e.g. 673027' },
+    { key: 'locations', label: 'Locations',   placeholder: 'e.g. KONDOTTY' },
   ],
 };
 
