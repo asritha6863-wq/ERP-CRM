@@ -41,6 +41,10 @@ import ReminderCenterPage from '../pages/engagement/ReminderCenterPage.jsx';
 import CampaignManagerPage from '../pages/engagement/CampaignManagerPage.jsx';
 import CelebrationHubPage from '../pages/engagement/CelebrationHubPage.jsx';
 
+// Analytics
+import SalesPerformancePage from '../pages/analytics/SalesPerformancePage.jsx';
+import LocationSalesPage    from '../pages/analytics/LocationSalesPage.jsx';
+
 export default function AppRoutes() {
   return (
     <Routes>
@@ -68,8 +72,8 @@ export default function AppRoutes() {
           <Route path="/engagement/campaigns"   element={<CampaignManagerPage />} />
           <Route path="/engagement/celebration" element={<CelebrationHubPage />} />
           <Route path="/analytics"          element={<ComingSoon name="Analytics" />} />
-          <Route path="/analytics/sales"    element={<ComingSoon name="Sales Performance" />} />
-          <Route path="/analytics/location" element={<ComingSoon name="Location Wise Sales" />} />
+          <Route path="/analytics/sales"    element={<SalesPerformancePage />} />
+          <Route path="/analytics/location" element={<LocationSalesPage />} />
           <Route path="/analytics/crm"      element={<ComingSoon name="CRM Analytics" />} />
           <Route path="/reports"                      element={<ComingSoon name="Reports" />} />
           <Route path="/reports/leads"               element={<ComingSoon name="Lead Report" />} />

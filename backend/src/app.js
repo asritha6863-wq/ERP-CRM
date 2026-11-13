@@ -13,6 +13,7 @@ import contactsRoutes  from './routes/contacts.routes.js';
 import remindersRoutes from './routes/reminders.routes.js';
 import campaignsRoutes from './routes/campaigns.routes.js';
 import celebrationsRoutes from './routes/celebrations.routes.js';
+import analyticsRoutes from './routes/analytics.routes.js';
 import { errorHandler } from './middleware/error.middleware.js';
 
 dotenv.config();
@@ -45,6 +46,7 @@ app.use('/api/contacts',  contactsRoutes);
 app.use('/api/reminders', remindersRoutes);
 app.use('/api/campaigns', campaignsRoutes);
 app.use('/api/celebrations', celebrationsRoutes);
+app.use('/api/analytics', analyticsRoutes);
 
 // 404 handler
 app.use((req, res) => {

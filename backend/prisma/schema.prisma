@@ -229,6 +229,9 @@ model Contact {
 
   dateOfBirth     DateTime?
   anniversaryDate DateTime?
+  state           String?
+  city            String?
+  pincode         String?
 
   @@unique([phone, companyId])
   @@index([branchId])

@@ -91,7 +91,7 @@ export async function createContact(user, data) {
   const {
     firstName, lastName, phone, email,
     companyId, typeId, branchId, assignedToId, rating,
-    dateOfBirth, anniversaryDate,
+    dateOfBirth, anniversaryDate, state, city, pincode,
   } = data;
 
   if (!firstName?.trim()) throw { statusCode: 400, message: 'firstName is required' };
@@ -121,6 +121,9 @@ export async function createContact(user, data) {
       rating:     rating ? +rating : null,
       dateOfBirth:     toDate(dateOfBirth),
       anniversaryDate: toDate(anniversaryDate),
+      state:   state?.trim()   || null,
+      city:    city?.trim()    || null,
+      pincode: pincode?.trim() || null,
     },
     include: CONTACT_INCLUDE,
   });
@@ -133,7 +136,7 @@ export async function updateContact(user, id, data) {
   const {
     firstName, lastName, phone, email,
     typeId, branchId, assignedToId, rating,
-    dateOfBirth, anniversaryDate,
+    dateOfBirth, anniversaryDate, state, city, pincode,
   } = data;
 
   const normPhone = phone !== undefined ? normalisePhone(phone) : undefined;
@@ -159,6 +162,9 @@ export async function updateContact(user, id, data) {
       ...(rating       !== undefined && { rating: rating ? +rating : null }),
       ...(dateOfBirth     !== undefined && { dateOfBirth: toDate(dateOfBirth) }),
       ...(anniversaryDate !== undefined && { anniversaryDate: toDate(anniversaryDate) }),
+      ...(state   !== undefined && { state:   state?.trim()   || null }),
+      ...(city    !== undefined && { city:    city?.trim()    || null }),
+      ...(pincode !== undefined && { pincode: pincode?.trim() || null }),
       requiresReview: normPhone ? false : existing.requiresReview,
     },
     include: CONTACT_INCLUDE,

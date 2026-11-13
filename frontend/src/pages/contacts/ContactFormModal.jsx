@@ -6,6 +6,7 @@ const EMPTY = {
   firstName: '', lastName: '', phone: '', email: '',
   companyId: '', typeId: '', branchId: '', assignedToId: '', rating: '',
   dateOfBirth: '', anniversaryDate: '',
+  state: '', city: '', pincode: '',
 };
 
 export default function ContactFormModal({ open, onClose, initial, onSave, lookups }) {
@@ -29,6 +30,9 @@ export default function ContactFormModal({ open, onClose, initial, onSave, looku
         rating:       initial.rating       || '',
         dateOfBirth:     initial.dateOfBirth     ? initial.dateOfBirth.slice(0, 10)     : '',
         anniversaryDate: initial.anniversaryDate ? initial.anniversaryDate.slice(0, 10) : '',
+        state:   initial.state   || '',
+        city:    initial.city    || '',
+        pincode: initial.pincode || '',
       } : EMPTY);
       setError('');
       setPhoneHint('');
@@ -151,6 +155,19 @@ export default function ContactFormModal({ open, onClose, initial, onSave, looku
                 <option value="">No rating</option>
                 {[1, 2, 3, 4, 5].map((r) => <option key={r} value={r}>{r} ★</option>)}
               </select>
+            </Field>
+          </div>
+
+          {/* Location (used by Location Wise Sales) */}
+          <div className="grid grid-cols-3 gap-4">
+            <Field label="State">
+              <input value={form.state} onChange={set('state')} className={INPUT} placeholder="Kerala" />
+            </Field>
+            <Field label="City">
+              <input value={form.city} onChange={set('city')} className={INPUT} placeholder="Calicut" />
+            </Field>
+            <Field label="Pincode">
+              <input value={form.pincode} onChange={set('pincode')} className={INPUT} placeholder="673001" />
             </Field>
           </div>
 
