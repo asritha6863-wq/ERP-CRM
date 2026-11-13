@@ -4,6 +4,7 @@ import {
   Gem, TrendingUp, BarChart2, FileText, Activity,
   MapPin, Calendar, ChevronDown, ChevronRight, Store, BookUser,
   Settings2, Brain, MessageSquare, PieChart, Heart,
+  Bell, Megaphone, PartyPopper,
 } from 'lucide-react';
 import { useState } from 'react';
 import { useAuth } from '../../context/AuthContext.jsx';
@@ -58,7 +59,17 @@ const NAV = [
       { id: 'marriage-purchase',     label: 'Marriage Purchase',      path: '/marriage-purchase',      icon: Heart       },
     ],
   },
-  { id: 'engagement',   label: 'Engagement',   path: '/engagement',   icon: TrendingUp, roles: ALL_ROLES },
+  {
+    id: 'engagement',
+    label: 'Engagement',
+    icon: TrendingUp,
+    roles: ALL_ROLES,
+    children: [
+      { id: 'remainder-center',  label: 'Remainder Center',   path: '/engagement/reminders',  icon: Bell        },
+      { id: 'campaign-manager',  label: 'Campaign Manager',   path: '/engagement/campaigns',  icon: Megaphone   },
+      { id: 'celebration',       label: 'Celebration',        path: '/engagement/celebration', icon: PartyPopper },
+    ],
+  },
   { id: 'analytics',    label: 'Analytics',    path: '/analytics',    icon: BarChart2,  roles: ALL_ROLES },
   { id: 'reports',      label: 'Reports',      path: '/reports',      icon: FileText,   roles: ALL_ROLES },
   { id: 'activity',     label: 'Activity',     path: '/activity',     icon: Activity,   roles: ALL_ROLES },
@@ -76,11 +87,13 @@ export default function Sidebar() {
 
   const isInSalesPipeline = SALES_PIPELINE_PATHS.some((p) => location.pathname.startsWith(p));
   const isInCustomerMgmt  = ['/customers', '/customer-intelligence', '/interaction-logs', '/customer-segmentation', '/marriage-purchase'].some((p) => location.pathname.startsWith(p));
+  const isInEngagement    = location.pathname.startsWith('/engagement');
 
   const [openGroups, setOpenGroups] = useState(() => ({
     'sales-pipeline':      isInSalesPipeline,
     'masters':             location.pathname.startsWith('/masters'),
     'customer-management': isInCustomerMgmt,
+    'engagement':          isInEngagement,
   }));
 
   const toggleGroup = (id) => setOpenGroups((s) => ({ ...s, [id]: !s[id] }));
