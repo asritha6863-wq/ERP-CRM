@@ -9,6 +9,14 @@ const LEAD_INCLUDE = {
   assignedTo: { select: { id: true, name: true } },
   tags:       { select: { id: true, name: true } },
   customer:   { select: { id: true } },
+  stage:      { select: { id: true, name: true } },
+  // Latest won deal — drives the Date / Rev / Rem details shown on won leads
+  deals: {
+    where:   { stage: { name: { equals: 'Won', mode: 'insensitive' } } },
+    orderBy: { updatedAt: 'desc' },
+    take:    1,
+    select:  { value: true, invoiceRef: true, updatedAt: true },
+  },
 };
 
 export async function listLeads(user, query) {
@@ -17,16 +25,32 @@ export async function listLeads(user, query) {
     statusId, sourceId, branchId, assignedToId,
     dateFrom, dateTo,
     channel,           // OUTDOOR | INSTORE — if omitted returns all
-    companyId,         // top-bar selector
+    view,              // created | today | overdue | upcoming — the tabs on the Leads page
+    today,             // client's local date (YYYY-MM-DD) so "today" matches the user's day
   } = query;
 
   const skip = (Math.max(1, +page) - 1) * Math.min(100, +limit);
   const take = Math.min(100, +limit);
 
-  const scope  = getScopeFilter(user, { companyId, branchId });
+  // Leads have no company column, so only the branch selector applies here
+  const scope  = getScopeFilter(user, { branchId });
   const where  = { ...scope };
 
   if (channel) where.channel = channel;
+
+  if (view) {
+    const now = new Date();
+    const dayStart = /^\d{4}-\d{2}-\d{2}$/.test(today || '')
+      ? new Date(`${today}T00:00:00.000Z`)
+      : new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
+    const dayEnd = new Date(dayStart.getTime() + 86_400_000);
+    const open   = { isWon: false, isLost: false };
+
+    if (view === 'created')       where.createdById = user.id;
+    else if (view === 'today')    Object.assign(where, open, { dueDate: { gte: dayStart, lt: dayEnd } });
+    else if (view === 'overdue')  Object.assign(where, open, { dueDate: { lt: dayStart } });
+    else if (view === 'upcoming') Object.assign(where, open, { dueDate: { gte: dayEnd } });
+  }
   if (search) {
     where.OR = [
       { firstName: { contains: search, mode: 'insensitive' } },
@@ -89,7 +113,8 @@ const toDay  = (v) => {
 export async function createLead(user, data) {
   const { firstName, lastName, email, phone, sourceId, statusId, branchId,
           assignedToId, tagNames = [], sentiment, rating, channel, companyId,
-          dueDate, notes, priority, marriageDate, dnf, expectedWeight, expectedAmount } = data;
+          dueDate, notes, priority, marriageDate, dnf, expectedWeight, expectedAmount,
+          altPhone, area } = data;
 
   if (!firstName?.trim()) throw { statusCode: 400, message: 'firstName is required' };
 
@@ -137,6 +162,8 @@ export async function createLead(user, data) {
       marriageDate:   dnf ? null : toDay(marriageDate),
       expectedWeight: toNum(expectedWeight),
       expectedAmount: toNum(expectedAmount),
+      altPhone:       altPhone?.trim() || null,
+      area:           area?.trim() || null,
       createdById:    user.id,
       tags:      { connect: tags.map((t) => ({ id: t.id })) },
     },
@@ -161,7 +188,7 @@ export async function updateLead(user, id, data) {
 
   const { firstName, lastName, email, phone, sourceId, statusId, branchId,
           assignedToId, tagNames, sentiment, rating, dueDate, notes,
-          priority, marriageDate, dnf, expectedWeight, expectedAmount } = data;
+          priority, marriageDate, dnf, expectedWeight, expectedAmount, altPhone, area } = data;
 
   // Duplicate phone check (exclude self)
   if (phone?.trim() && phone.trim() !== existing.phone) {
@@ -174,7 +201,8 @@ export async function updateLead(user, id, data) {
   const activities = [];
 
   if (statusId && statusId !== existing.statusId) {
-    activities.push({ type: 'STATUS_CHANGE', description: `Status changed to ${statusId}` });
+    const newStatus = await prisma.leadStatus.findUnique({ where: { id: statusId }, select: { name: true } });
+    activities.push({ type: 'STATUS_CHANGE', description: `Lead status changed to ${newStatus?.name || 'unknown'}` });
   }
   if (assignedToId && assignedToId !== existing.assignedToId) {
     activities.push({ type: 'ASSIGNMENT_CHANGE', description: `Assigned staff changed` });
@@ -202,6 +230,8 @@ export async function updateLead(user, id, data) {
       ...(marriageDate !== undefined && { marriageDate: dnf ? null : toDay(marriageDate) }),
       ...(expectedWeight !== undefined && { expectedWeight: toNum(expectedWeight) }),
       ...(expectedAmount !== undefined && { expectedAmount: toNum(expectedAmount) }),
+      ...(altPhone   !== undefined && { altPhone: altPhone?.trim() || null }),
+      ...(area       !== undefined && { area: area?.trim() || null }),
       ...(tags && { tags: { set: tags.map((t) => ({ id: t.id })) } }),
     },
     include: LEAD_INCLUDE,

@@ -143,6 +143,8 @@ export default function LeadFormModal({ open, onClose, initial, onSave, lookups 
         firstName,
         lastName:     rest.join(' '),
         phone:        form.phone.trim() || null,
+        altPhone:     form.altPhone.trim() || null,
+        area:         form.area.trim() || null,
         email:        form.email.trim() || null,
         sourceId:     form.sourceId   || null,
         statusId:     form.statusId   || null,
@@ -159,7 +161,6 @@ export default function LeadFormModal({ open, onClose, initial, onSave, lookups 
         tagNames:     form.tagNames,
         // Extra details are packed into notes on create; on edit the notes stay exactly as typed
         notes: initial ? (form.notes.trim() || null) : [
-          form.area          && `Area: ${form.area}`,
           form.gender        && `Gender: ${form.gender}`,
           form.religion      && `Religion: ${form.religion}`,
           form.brideGroom    && `Bride/Groom: ${form.brideGroom}`,

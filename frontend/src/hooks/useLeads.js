@@ -5,7 +5,7 @@ import { useGlobalFilter } from '../context/GlobalFilterContext.jsx';
 /**
  * @param {string} channel - 'OUTDOOR' | 'INSTORE' | '' (all)
  */
-export default function useLeads(channel = '') {
+export default function useLeads(channel = '', view = '') {
   const { globalParams } = useGlobalFilter();
 
   const [data, setData]       = useState([]);
@@ -25,6 +25,7 @@ export default function useLeads(channel = '') {
     try {
       const params = { page, limit, search, ...filters, ...globalParams };
       if (channel) params.channel = channel;
+      if (view) { params.view = view; params.today = new Date().toLocaleDateString('en-CA'); }
       Object.keys(params).forEach((k) => !params[k] && delete params[k]);
       const res = await api.get('/leads', { params });
       setData(res.data.data);
@@ -33,12 +34,12 @@ export default function useLeads(channel = '') {
     } catch (err) {
       setError(err.response?.data?.error || 'Failed to load leads');
     } finally { setLoading(false); }
-  }, [page, search, filters, globalParams, channel]);
+  }, [page, search, filters, globalParams, channel, view]);
 
   useEffect(() => { fetchData(); }, [fetchData]);
 
   // Reset to page 1 when global filters change
-  useEffect(() => { setPage(1); }, [globalParams]);
+  useEffect(() => { setPage(1); }, [globalParams, view]);
 
   const handleSearch = (val) => { setSearch(val); setPage(1); };
   const handleFilter = (key, val) => { setFilters((f) => ({ ...f, [key]: val })); setPage(1); };

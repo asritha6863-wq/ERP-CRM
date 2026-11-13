@@ -271,6 +271,8 @@ model Lead {
   rating        Int?
   dueDate       DateTime?
   notes         String?
+  altPhone       String?
+  area           String?
   stageId        String?
   stage          PipelineStage? @relation(fields: [stageId], references: [id])
   priority       LeadPriority   @default(MEDIUM)
