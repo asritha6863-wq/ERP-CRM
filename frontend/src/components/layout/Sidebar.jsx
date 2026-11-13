@@ -31,13 +31,6 @@ const NAV = [
       { id: 'contacts',      label: 'Contacts',       path: '/contacts',      icon: BookUser     },
     ],
   },
-  { id: 'customers',    label: 'Customers',    path: '/customers',    icon: UserCheck,  roles: ALL_ROLES },
-  { id: 'engagement',   label: 'Engagement',   path: '/engagement',   icon: TrendingUp, roles: ALL_ROLES },
-  { id: 'analytics',    label: 'Analytics',    path: '/analytics',    icon: BarChart2,  roles: ALL_ROLES },
-  { id: 'reports',      label: 'Reports',      path: '/reports',      icon: FileText,   roles: ALL_ROLES },
-  { id: 'activity',     label: 'Activity',     path: '/activity',     icon: Activity,   roles: ALL_ROLES },
-  { id: 'visits',       label: 'Visits',       path: '/visits',       icon: MapPin,     roles: ALL_ROLES },
-  { id: 'appointments', label: 'Appointments', path: '/appointments', icon: Calendar,   roles: ALL_ROLES },
   {
     id: 'masters',
     label: 'Masters',
@@ -52,6 +45,13 @@ const NAV = [
       { id: 'lead-status',     label: 'Lead Status Master', path: '/masters/lead-statuses',icon: Settings2 },
     ],
   },
+  { id: 'customers',    label: 'Customers',    path: '/customers',    icon: UserCheck,  roles: ALL_ROLES },
+  { id: 'engagement',   label: 'Engagement',   path: '/engagement',   icon: TrendingUp, roles: ALL_ROLES },
+  { id: 'analytics',    label: 'Analytics',    path: '/analytics',    icon: BarChart2,  roles: ALL_ROLES },
+  { id: 'reports',      label: 'Reports',      path: '/reports',      icon: FileText,   roles: ALL_ROLES },
+  { id: 'activity',     label: 'Activity',     path: '/activity',     icon: Activity,   roles: ALL_ROLES },
+  { id: 'visits',       label: 'Visits',       path: '/visits',       icon: MapPin,     roles: ALL_ROLES },
+  { id: 'appointments', label: 'Appointments', path: '/appointments', icon: Calendar,   roles: ALL_ROLES },
 ];
 
 const SALES_PIPELINE_PATHS = ['/leads', '/instore-leads', '/pipeline', '/contacts'];
