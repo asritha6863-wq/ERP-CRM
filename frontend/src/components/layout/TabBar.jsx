@@ -9,7 +9,7 @@ export default function TabBar() {
   if (tabs.length === 0) return null;
 
   return (
-    <div className="flex items-center bg-gray-100 border-b border-gray-200 overflow-x-auto shrink-0">
+    <div className="print:hidden flex items-center bg-gray-100 border-b border-gray-200 overflow-x-auto shrink-0">
       <div className="flex items-center flex-1 min-w-0">
         {tabs.map((tab) => {
           const isActive = tab.id === activeId;

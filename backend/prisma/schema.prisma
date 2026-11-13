@@ -33,6 +33,12 @@ enum ActivityType {
   CREATED
 }
 
+enum LeadPriority {
+  LOW
+  MEDIUM
+  HIGH
+}
+
 enum LeadChannel {
   OUTDOOR   // Door to Door, Mass Marketing, Referral, Campaign
   INSTORE   // Walk In
@@ -85,6 +91,7 @@ model User {
   visits      Visit[]
 
   dateOfBirth      DateTime?
+  createdLeads     Lead[]     @relation("LeadCreator")
   reminders        Reminder[] @relation("ReminderAssignee")
   createdReminders Reminder[] @relation("ReminderCreator")
   campaigns        Campaign[]
@@ -133,6 +140,7 @@ model LeadStatus {
 }
 
 model PipelineStage {
+  leads     Lead[]
   id        String    @id @default(cuid())
   name      String    @unique
   order     Int       @default(0)
@@ -263,6 +271,16 @@ model Lead {
   rating        Int?
   dueDate       DateTime?
   notes         String?
+  stageId        String?
+  stage          PipelineStage? @relation(fields: [stageId], references: [id])
+  priority       LeadPriority   @default(MEDIUM)
+  marriageDate   DateTime?
+  dnf            Boolean        @default(false)
+  expectedWeight Float?
+  expectedAmount Float?
+  lossReason     String?
+  createdById    String?
+  createdBy      User?          @relation("LeadCreator", fields: [createdById], references: [id])
   isWon         Boolean     @default(false)
   isLost        Boolean     @default(false)
   isConverted   Boolean     @default(false)
@@ -280,6 +298,11 @@ model Lead {
   @@index([branchId])
   @@index([assignedToId])
   @@index([statusId])
+  @@index([stageId])
+  @@index([priority])
+  @@index([createdAt])
+  @@index([createdById])
+  @@index([marriageDate])
   @@index([dueDate])
 }
 

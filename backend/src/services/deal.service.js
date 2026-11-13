@@ -1,6 +1,18 @@
 import prisma from '../utils/prisma.js';
 import { getScopeFilter } from '../middleware/scope.middleware.js';
 
+// Keep the parent lead's stage / outcome / loss reason in step with its deal
+async function syncLead(leadId, stage, lostReasonId) {
+  if (!leadId || !stage) return;
+  const isWon  = /^won$/i.test(stage.name);
+  const isLost = /^lost$/i.test(stage.name);
+  let lossReason = null;
+  if (isLost && lostReasonId) {
+    lossReason = (await prisma.lostReason.findUnique({ where: { id: lostReasonId } }))?.name ?? null;
+  }
+  await prisma.lead.update({ where: { id: leadId }, data: { stageId: stage.id, isWon, isLost, lossReason } });
+}
+
 const DEAL_INCLUDE = {
   stage:      { select: { id: true, name: true, order: true } },
   lostReason: { select: { id: true, name: true } },
@@ -170,6 +182,7 @@ export async function createDeal(user, data) {
     });
   }
 
+  await syncLead(leadId, deal.stage, null);
   return deal;
 }
 
@@ -223,6 +236,7 @@ export async function moveStage(user, id, { stageId, lostReasonId }) {
     });
   }
 
+  await syncLead(existing.leadId, stage, lostReasonId);
   return deal;
 }
 

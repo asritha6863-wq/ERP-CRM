@@ -165,7 +165,7 @@ export default function Sidebar() {
   const visible = NAV.filter((item) => item.roles?.includes(user?.role));
 
   return (
-    <aside className="w-64 bg-white border-r border-gray-200 flex flex-col shrink-0 h-screen sticky top-0 shadow-sm">
+    <aside className="print:hidden w-64 bg-white border-r border-gray-200 flex flex-col shrink-0 h-screen sticky top-0 shadow-sm">
 
       {/* Logo */}
       <div className="px-5 py-4 flex items-center gap-2 border-b border-gray-100">

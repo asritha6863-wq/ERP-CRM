@@ -46,6 +46,9 @@ import SalesPerformancePage from '../pages/analytics/SalesPerformancePage.jsx';
 import LocationSalesPage    from '../pages/analytics/LocationSalesPage.jsx';
 import CrmAnalyticsPage     from '../pages/analytics/CrmAnalyticsPage.jsx';
 
+// Reports
+import LeadReportPage       from '../pages/reports/LeadReportPage.jsx';
+
 export default function AppRoutes() {
   return (
     <Routes>
@@ -77,7 +80,7 @@ export default function AppRoutes() {
           <Route path="/analytics/location" element={<LocationSalesPage />} />
           <Route path="/analytics/crm"      element={<CrmAnalyticsPage />} />
           <Route path="/reports"                      element={<ComingSoon name="Reports" />} />
-          <Route path="/reports/leads"               element={<ComingSoon name="Lead Report" />} />
+          <Route path="/reports/leads"               element={<LeadReportPage />} />
           <Route path="/reports/instore-leads"       element={<ComingSoon name="Instore Lead Report" />} />
           <Route path="/reports/bde"                 element={<ComingSoon name="BDE Wise Report" />} />
           <Route path="/reports/customer-feedback"   element={<ComingSoon name="Customer Feedback Report" />} />

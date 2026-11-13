@@ -78,10 +78,18 @@ export async function getLead(user, id) {
   return lead;
 }
 
+const PRIORITIES = ['LOW', 'MEDIUM', 'HIGH'];
+const toNum  = (v) => (v === '' || v === null || v === undefined || Number.isNaN(+v) ? null : +v);
+const toDay  = (v) => {
+  if (!v) return null;
+  const d = new Date(String(v).slice(0, 10) + 'T00:00:00.000Z');
+  return Number.isNaN(d.getTime()) ? null : d;
+};
+
 export async function createLead(user, data) {
   const { firstName, lastName, email, phone, sourceId, statusId, branchId,
           assignedToId, tagNames = [], sentiment, rating, channel, companyId,
-          dueDate, notes } = data;
+          dueDate, notes, priority, marriageDate, dnf, expectedWeight, expectedAmount } = data;
 
   if (!firstName?.trim()) throw { statusCode: 400, message: 'firstName is required' };
 
@@ -124,6 +132,12 @@ export async function createLead(user, data) {
       rating:    rating ? +rating : null,
       dueDate:   dueDate ? new Date(dueDate) : null,
       notes:     notes?.trim() || null,
+      priority:  PRIORITIES.includes(priority) ? priority : 'MEDIUM',
+      dnf:       !!dnf,
+      marriageDate:   dnf ? null : toDay(marriageDate),
+      expectedWeight: toNum(expectedWeight),
+      expectedAmount: toNum(expectedAmount),
+      createdById:    user.id,
       tags:      { connect: tags.map((t) => ({ id: t.id })) },
     },
     include: LEAD_INCLUDE,
@@ -146,7 +160,8 @@ export async function updateLead(user, id, data) {
   if (!existing) throw { statusCode: 404, message: 'Lead not found' };
 
   const { firstName, lastName, email, phone, sourceId, statusId, branchId,
-          assignedToId, tagNames, sentiment, rating, dueDate, notes } = data;
+          assignedToId, tagNames, sentiment, rating, dueDate, notes,
+          priority, marriageDate, dnf, expectedWeight, expectedAmount } = data;
 
   // Duplicate phone check (exclude self)
   if (phone?.trim() && phone.trim() !== existing.phone) {
@@ -182,6 +197,11 @@ export async function updateLead(user, id, data) {
       ...(rating     !== undefined && { rating: rating ? +rating : null }),
       ...(dueDate    !== undefined && { dueDate: dueDate ? new Date(dueDate) : null }),
       ...(notes      !== undefined && { notes: notes?.trim() || null }),
+      ...(priority   !== undefined && PRIORITIES.includes(priority) && { priority }),
+      ...(dnf        !== undefined && { dnf: !!dnf }),
+      ...(marriageDate !== undefined && { marriageDate: dnf ? null : toDay(marriageDate) }),
+      ...(expectedWeight !== undefined && { expectedWeight: toNum(expectedWeight) }),
+      ...(expectedAmount !== undefined && { expectedAmount: toNum(expectedAmount) }),
       ...(tags && { tags: { set: tags.map((t) => ({ id: t.id })) } }),
     },
     include: LEAD_INCLUDE,
@@ -304,6 +324,8 @@ export async function winLead(user, id, { value = 0, invoiceRef }) {
       data: {
         isWon:    true,
         statusId: wonStatus?.id || lead.statusId,
+        stageId:  wonStage.id,
+        lossReason: null,
       },
     });
 
@@ -344,11 +366,15 @@ export async function loseLead(user, id, { lostReasonId }) {
   });
 
   const updatedLead = await prisma.$transaction(async (tx) => {
+    const lostStage = await tx.pipelineStage.findFirst({ where: { name: { equals: 'Lost', mode: 'insensitive' } } });
+    const reason    = await tx.lostReason.findUnique({ where: { id: lostReasonId } });
     const updated = await tx.lead.update({
       where: { id },
       data: {
         isLost:   true,
         statusId: lostStatus?.id || lead.statusId,
+        stageId:  lostStage?.id ?? lead.stageId,
+        lossReason: reason?.name ?? null,
       },
     });
 
