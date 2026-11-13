@@ -11,8 +11,6 @@ import CRMMasterScreen  from '../pages/masters/CRMMasterScreen.jsx';
 import UsersScreen      from '../pages/masters/UsersScreen.jsx';
 import {
   BRANCHES_CONFIG,
-  LEAD_SOURCES_CONFIG,
-  LEAD_STATUSES_CONFIG,
   PIPELINE_STAGES_CONFIG,
   LOST_REASONS_CONFIG,
   CUSTOMER_CATEGORIES_CONFIG,
