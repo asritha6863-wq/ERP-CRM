@@ -49,6 +49,8 @@ import LeadReportPage       from '../pages/reports/LeadReportPage.jsx';
 import InstoreLeadReportPage from '../pages/reports/InstoreLeadReportPage.jsx';
 import BdeReportPage        from '../pages/reports/BdeReportPage.jsx';
 import FeedbackReportPage   from '../pages/reports/FeedbackReportPage.jsx';
+import IncentiveReportPage  from '../pages/reports/IncentiveReportPage.jsx';
+import CustomerProfilePage  from '../pages/customers/CustomerProfilePage.jsx';
 
 export default function AppRoutes() {
   return (
@@ -67,6 +69,7 @@ export default function AppRoutes() {
           <Route path="/instore-leads" element={<InstoreLeadsPage />} />
           <Route path="/leads/:id"     element={<LeadDetailPage />} />
           <Route path="/customers"             element={<CustomersPage />} />
+          <Route path="/customers/:id"         element={<CustomerProfilePage />} />
           <Route path="/customer-intelligence" element={<ComingSoon name="Customer Intelligence" />} />
           <Route path="/interaction-logs"      element={<ComingSoon name="Interaction Logs" />} />
           <Route path="/customer-segmentation" element={<ComingSoon name="Customer Segmentation" />} />
@@ -85,7 +88,7 @@ export default function AppRoutes() {
           <Route path="/reports/instore-leads"       element={<InstoreLeadReportPage />} />
           <Route path="/reports/bde"                 element={<BdeReportPage />} />
           <Route path="/reports/customer-feedback"   element={<FeedbackReportPage />} />
-          <Route path="/reports/incentive"           element={<ComingSoon name="Incentive Report" />} />
+          <Route path="/reports/incentive"           element={<IncentiveReportPage />} />
           <Route path="/activity"        element={<ComingSoon name="Activity" />} />
           <Route path="/activity/feed"   element={<ComingSoon name="Customer Feed" />} />
           <Route path="/activity/tasks"  element={<ComingSoon name="Tasks" />} />

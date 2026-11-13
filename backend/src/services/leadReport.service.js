@@ -10,18 +10,18 @@ const parseDay = (s) => (typeof s === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(s) 
 const endOfDay = (s) => { const d = parseDay(s); return d ? new Date(d.getTime() + DAY - 1) : null; };
 const ymd = (d) => (d ? d.toISOString().slice(0, 10) : '');
 
-const ROW_INCLUDE = {
+export const ROW_INCLUDE = {
   branch:     { select: { name: true } },
   source:     { select: { name: true } },
   stage:      { select: { name: true } },
   status:     { select: { name: true } },
-  createdBy:  { select: { name: true } },
+  createdBy:  { select: { name: true, role: true } },
   assignedTo: { select: { name: true } },
   // Latest won deal — its date is the lead's purchase date
   deals: {
     where:   { stage: { name: { equals: 'Won', mode: 'insensitive' } } },
     orderBy: { updatedAt: 'desc' },
-    take:    1,
+    take:    20,
     select:  { updatedAt: true, value: true },
   },
 };
@@ -37,7 +37,7 @@ export const COLUMNS = [
   ['area', 'Area'], ['purchaseDate', 'Purchase Date'], ['purchaseAmount', 'Purchase Amount'],
 ];
 
-function outcomeOf(l) {
+export function outcomeOf(l) {
   if (l.isWon) return 'WON';
   if (l.isLost) return 'LOST';
   if (/^cancelled$/i.test(l.status?.name || '')) return 'CANCELLED';
@@ -67,7 +67,7 @@ function toRow(l, firstStageName) {
     lossReason:     l.lossReason || '',
     area:           l.area || '',
     purchaseDate:   l.isWon ? ymd(l.deals?.[0]?.updatedAt) : '',
-    purchaseAmount: l.isWon && l.deals?.[0] ? l.deals[0].value : '',
+    purchaseAmount: l.isWon && l.deals?.length ? l.deals.reduce((s, d) => s + d.value, 0) : '',
   };
 }
 
@@ -76,7 +76,7 @@ async function firstStage() {
 }
 
 // Builds the Prisma where for the current user's scope plus every report filter
-async function buildWhere(user, q) {
+export async function buildWhere(user, q) {
   const parts = [];
 
   if (user.role === 'SALES') parts.push({ assignedToId: user.id });

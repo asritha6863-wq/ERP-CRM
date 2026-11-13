@@ -46,6 +46,7 @@ const NAV = [
       { id: 'lead-status',     label: 'Lead Status Master', path: '/masters/lead-statuses',icon: Settings2 },
     ],
   },
+  { id: 'customers', label: 'Customers', path: '/customers', icon: UserCheck, roles: ALL_ROLES },
   {
     id: 'customer-management',
     label: 'Customer Management',
@@ -133,7 +134,7 @@ export default function Sidebar() {
   const location    = useLocation();
 
   const isInSalesPipeline = SALES_PIPELINE_PATHS.some((p) => location.pathname.startsWith(p));
-  const isInCustomerMgmt  = ['/customers', '/customer-intelligence', '/interaction-logs', '/customer-segmentation', '/marriage-purchase'].some((p) => location.pathname.startsWith(p));
+  const isInCustomerMgmt  = ['/customer-intelligence', '/interaction-logs', '/customer-segmentation', '/marriage-purchase'].some((p) => location.pathname.startsWith(p));
   const isInEngagement    = location.pathname.startsWith('/engagement');
   const isInAnalytics     = location.pathname.startsWith('/analytics');
   const isInReports       = location.pathname.startsWith('/reports');

@@ -235,6 +235,7 @@ model Contact {
   leads     Lead[]
   deals     Deal[]
   reminders Reminder[]
+  visits    Visit[]
 
   dateOfBirth     DateTime?
   anniversaryDate DateTime?
@@ -254,6 +255,7 @@ model Lead {
   id            String      @id @default(cuid())
   contactId     String?
   contact       Contact?    @relation(fields: [contactId], references: [id])
+  leadNo        Int         @default(autoincrement()) @unique
   channel       LeadChannel @default(OUTDOOR)
   firstName     String
   lastName      String
@@ -420,11 +422,15 @@ model Campaign {
 
 model Visit {
   id        String    @id @default(cuid())
-  leadId    String
-  lead      Lead      @relation(fields: [leadId], references: [id])
+  leadId    String?
+  lead      Lead?     @relation(fields: [leadId], references: [id])
+  contactId String?
+  contact   Contact?  @relation(fields: [contactId], references: [id])
   userId    String?
   user      User?     @relation(fields: [userId], references: [id])
   date      DateTime
+  @@index([contactId])
+  @@index([date])
   notes     String?
   createdAt DateTime  @default(now())
 }

@@ -16,6 +16,7 @@ import celebrationsRoutes from './routes/celebrations.routes.js';
 import analyticsRoutes from './routes/analytics.routes.js';
 import reportsRoutes from './routes/reports.routes.js';
 import feedbackRoutes from './routes/feedback.routes.js';
+import customerHubRoutes from './routes/customerHub.routes.js';
 import { errorHandler } from './middleware/error.middleware.js';
 
 dotenv.config();
@@ -51,6 +52,7 @@ app.use('/api/celebrations', celebrationsRoutes);
 app.use('/api/analytics', analyticsRoutes);
 app.use('/api/reports', reportsRoutes);
 app.use('/api/feedback', feedbackRoutes);
+app.use('/api/customer-hub', customerHubRoutes);
 
 // 404 handler
 app.use((req, res) => {
