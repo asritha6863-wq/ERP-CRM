@@ -62,7 +62,10 @@ export default function AppRoutes() {
           <Route path="/engagement/reminders"   element={<ComingSoon name="Remainder Center" />} />
           <Route path="/engagement/campaigns"   element={<ComingSoon name="Campaign Manager" />} />
           <Route path="/engagement/celebration" element={<ComingSoon name="Celebration" />} />
-          <Route path="/analytics"     element={<ComingSoon name="Analytics" />} />
+          <Route path="/analytics"          element={<ComingSoon name="Analytics" />} />
+          <Route path="/analytics/sales"    element={<ComingSoon name="Sales Performance" />} />
+          <Route path="/analytics/location" element={<ComingSoon name="Location Wise Sales" />} />
+          <Route path="/analytics/crm"      element={<ComingSoon name="CRM Analytics" />} />
           <Route path="/reports"       element={<ComingSoon name="Reports" />} />
           <Route path="/activity"      element={<ComingSoon name="Activity" />} />
           <Route path="/visits"        element={<ComingSoon name="Visits" />} />

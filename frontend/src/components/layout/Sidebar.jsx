@@ -65,9 +65,20 @@ const NAV = [
     icon: TrendingUp,
     roles: ALL_ROLES,
     children: [
-      { id: 'remainder-center',  label: 'Remainder Center',   path: '/engagement/reminders',  icon: Bell        },
-      { id: 'campaign-manager',  label: 'Campaign Manager',   path: '/engagement/campaigns',  icon: Megaphone   },
+      { id: 'remainder-center',  label: 'Remainder Center',   path: '/engagement/reminders',   icon: Bell        },
+      { id: 'campaign-manager',  label: 'Campaign Manager',   path: '/engagement/campaigns',   icon: Megaphone   },
       { id: 'celebration',       label: 'Celebration',        path: '/engagement/celebration', icon: PartyPopper },
+    ],
+  },
+  {
+    id: 'performance-analytics',
+    label: 'Performance Analytics',
+    icon: BarChart2,
+    roles: ALL_ROLES,
+    children: [
+      { id: 'sales-performance',   label: 'Sales Performance',   path: '/analytics/sales',     icon: TrendingUp },
+      { id: 'location-wise-sales', label: 'Location Wise Sales', path: '/analytics/location',  icon: MapPin     },
+      { id: 'crm-analytics',       label: 'CRM Analytics',       path: '/analytics/crm',       icon: BarChart2  },
     ],
   },
   { id: 'analytics',    label: 'Analytics',    path: '/analytics',    icon: BarChart2,  roles: ALL_ROLES },
@@ -88,12 +99,14 @@ export default function Sidebar() {
   const isInSalesPipeline = SALES_PIPELINE_PATHS.some((p) => location.pathname.startsWith(p));
   const isInCustomerMgmt  = ['/customers', '/customer-intelligence', '/interaction-logs', '/customer-segmentation', '/marriage-purchase'].some((p) => location.pathname.startsWith(p));
   const isInEngagement    = location.pathname.startsWith('/engagement');
+  const isInAnalytics     = location.pathname.startsWith('/analytics');
 
   const [openGroups, setOpenGroups] = useState(() => ({
-    'sales-pipeline':      isInSalesPipeline,
-    'masters':             location.pathname.startsWith('/masters'),
-    'customer-management': isInCustomerMgmt,
-    'engagement':          isInEngagement,
+    'sales-pipeline':        isInSalesPipeline,
+    'masters':               location.pathname.startsWith('/masters'),
+    'customer-management':   isInCustomerMgmt,
+    'engagement':            isInEngagement,
+    'performance-analytics': isInAnalytics,
   }));
 
   const toggleGroup = (id) => setOpenGroups((s) => ({ ...s, [id]: !s[id] }));
