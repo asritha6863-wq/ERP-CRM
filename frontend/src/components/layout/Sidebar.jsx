@@ -1,30 +1,10 @@
 import { useNavigate, useLocation } from 'react-router-dom';
 import {
-  LayoutDashboard,
-  Users,
-  UserCheck,
-  KanbanSquare,
-  Settings,
-  Building2,
-  Radio,
-  Tag,
-  GitBranch,
-  AlertCircle,
-  FolderTree,
-  UserCog,
-  Gem,
-  TrendingUp,
-  BarChart2,
-  FileText,
-  Activity,
-  MapPin,
-  Calendar,
-  ChevronDown,
-  ChevronRight,
-  Store,
-  BookUser,
-  Briefcase,
-  MapPin,
+  LayoutDashboard, Users, UserCheck, KanbanSquare, Settings,
+  Building2, Radio, Tag, GitBranch, AlertCircle, FolderTree,
+  UserCog, Gem, TrendingUp, BarChart2, FileText, Activity,
+  MapPin, Calendar, ChevronDown, ChevronRight, Store, BookUser,
+  Briefcase, Settings2,
 } from 'lucide-react';
 import { useState } from 'react';
 import { useAuth } from '../../context/AuthContext.jsx';
@@ -43,16 +23,16 @@ const NAV = [
   {
     id: 'sales-pipeline',
     label: 'Sales Pipeline',
-    icon: KanbanSquare,
+    icon: TrendingUp,
     roles: ALL_ROLES,
     children: [
-      { id: 'leads',         label: 'Leads',           path: '/leads',         icon: Users       },
-      { id: 'instore-leads', label: 'Instore Leads',   path: '/instore-leads', icon: Store       },
-      { id: 'pipeline',      label: 'Deals Pipeline',  path: '/pipeline',      icon: KanbanSquare },
-      { id: 'contacts',      label: 'Contacts',        path: '/contacts',      icon: BookUser    },
+      { id: 'leads',         label: 'Leads',          path: '/leads',         icon: Users        },
+      { id: 'instore-leads', label: 'Instore Leads',  path: '/instore-leads', icon: Store        },
+      { id: 'pipeline',      label: 'Deals Pipeline', path: '/pipeline',      icon: KanbanSquare },
+      { id: 'contacts',      label: 'Contacts',       path: '/contacts',      icon: BookUser     },
     ],
   },
-  { id: 'customers',    label: 'Customers',    path: '/customers',    icon: UserCheck, roles: ALL_ROLES },
+  { id: 'customers',    label: 'Customers',    path: '/customers',    icon: UserCheck,  roles: ALL_ROLES },
   { id: 'engagement',   label: 'Engagement',   path: '/engagement',   icon: TrendingUp, roles: ALL_ROLES },
   { id: 'analytics',    label: 'Analytics',    path: '/analytics',    icon: BarChart2,  roles: ALL_ROLES },
   { id: 'reports',      label: 'Reports',      path: '/reports',      icon: FileText,   roles: ALL_ROLES },
@@ -65,18 +45,18 @@ const NAV = [
     icon: Settings,
     roles: ['ADMIN'],
     children: [
-      { id: 'stage-master',    label: 'Stage Master',       path: '/masters/stage',          icon: GitBranch   },
-      { id: 'area-master',     label: 'Area Master',        path: '/masters/areas',          icon: MapPin      },
-      { id: 'location-master', label: 'Location Master',    path: '/masters/locations',      icon: MapPin      },
-      { id: 'lead-source',     label: 'Lead Source Master', path: '/masters/lead-sources',   icon: Radio       },
-      { id: 'channel',         label: 'Channel Master',     path: '/masters/channels',       icon: Briefcase   },
-      { id: 'lead-status',     label: 'Lead Status Master', path: '/masters/lead-statuses',  icon: Tag         },
-      { id: 'companies',       label: 'Companies',          path: '/masters/companies',      icon: Briefcase   },
-      { id: 'branches',        label: 'Branches',           path: '/masters/branches',       icon: Building2   },
-      { id: 'contact-types',   label: 'Contact Types',      path: '/masters/contact-types',  icon: BookUser    },
-      { id: 'lost-reasons',    label: 'Lost Reasons',       path: '/masters/lost-reasons',   icon: AlertCircle },
-      { id: 'categories',      label: 'Customer Categories',path: '/masters/customer-categories', icon: FolderTree },
-      { id: 'users',           label: 'Users',              path: '/masters/users',          icon: UserCog     },
+      { id: 'stage-master',    label: 'Stage Master',        path: '/masters/stage',               icon: Settings2   },
+      { id: 'area-master',     label: 'Area Master',         path: '/masters/areas',               icon: MapPin      },
+      { id: 'location-master', label: 'Location Master',     path: '/masters/locations',           icon: MapPin      },
+      { id: 'lead-source',     label: 'Lead Source Master',  path: '/masters/lead-sources',        icon: Settings2   },
+      { id: 'channel',         label: 'Channel Master',      path: '/masters/channels',            icon: Settings2   },
+      { id: 'lead-status',     label: 'Lead Status Master',  path: '/masters/lead-statuses',       icon: Settings2   },
+      { id: 'companies',       label: 'Companies',           path: '/masters/companies',           icon: Briefcase   },
+      { id: 'branches',        label: 'Branches',            path: '/masters/branches',            icon: Building2   },
+      { id: 'contact-types',   label: 'Contact Types',       path: '/masters/contact-types',       icon: BookUser    },
+      { id: 'lost-reasons',    label: 'Lost Reasons',        path: '/masters/lost-reasons',        icon: AlertCircle },
+      { id: 'categories',      label: 'Customer Categories', path: '/masters/customer-categories', icon: FolderTree  },
+      { id: 'users',           label: 'Users',               path: '/masters/users',               icon: UserCog     },
     ],
   },
 ];
@@ -91,11 +71,10 @@ export default function Sidebar() {
 
   const isInSalesPipeline = SALES_PIPELINE_PATHS.some((p) => location.pathname.startsWith(p));
 
-  const [openGroups, setOpenGroups] = useState(() => {
-    const init = { masters: location.pathname.startsWith('/masters') };
-    init['sales-pipeline'] = isInSalesPipeline;
-    return init;
-  });
+  const [openGroups, setOpenGroups] = useState(() => ({
+    'sales-pipeline': isInSalesPipeline,
+    'masters': location.pathname.startsWith('/masters'),
+  }));
 
   const toggleGroup = (id) => setOpenGroups((s) => ({ ...s, [id]: !s[id] }));
 
@@ -104,39 +83,39 @@ export default function Sidebar() {
     navigate(item.path);
   };
 
-  const isActive = (path) => location.pathname === path;
+  const isActive = (path) => location.pathname === path || location.pathname.startsWith(path + '/');
 
-  const visible = NAV.filter((item) => item.roles.includes(user?.role));
+  const visible = NAV.filter((item) => item.roles?.includes(user?.role));
 
   return (
-    <aside className="w-60 bg-gray-900 text-gray-300 flex flex-col shrink-0 h-screen sticky top-0">
+    <aside className="w-64 bg-white border-r border-gray-200 flex flex-col shrink-0 h-screen sticky top-0 shadow-sm">
+
       {/* Logo */}
-      <div className="px-5 py-4 flex items-center gap-2 text-white border-b border-gray-800">
-        <div className="bg-indigo-600 rounded-lg p-1.5">
-          <Gem className="w-5 h-5 text-white" />
+      <div className="px-5 py-4 flex items-center gap-2 border-b border-gray-100">
+        <div className="bg-gray-900 rounded-xl p-2 shrink-0">
+          <Gem className="w-4 h-4 text-white" />
         </div>
-        <span className="font-semibold text-sm">Jewellery CRM</span>
+        <span className="font-bold text-sm text-gray-900">Jewellery CRM</span>
       </div>
 
       {/* Nav */}
-      <nav className="flex-1 overflow-y-auto px-2 py-3 space-y-0.5">
+      <nav className="flex-1 overflow-y-auto py-3">
         {visible.map((item) => {
+
+          // ── Group with children ──────────────────────
           if (item.children) {
-            const isOpen = !!openGroups[item.id];
-            const anyChildActive = item.children.some((c) => isActive(c.path));
+            const isOpen       = !!openGroups[item.id];
+            const anyActive    = item.children.some((c) => isActive(c.path));
 
             return (
               <div key={item.id}>
+                {/* Group header */}
                 <button
                   onClick={() => toggleGroup(item.id)}
-                  className={`w-full flex items-center justify-between gap-2 px-3 py-2 rounded-lg text-sm transition-colors ${
-                    anyChildActive
-                      ? 'text-white bg-gray-800'
-                      : 'text-gray-400 hover:bg-gray-800 hover:text-white'
-                  }`}
+                  className="w-full flex items-center justify-between px-4 py-2.5 text-xs font-bold text-gray-400 uppercase tracking-widest hover:text-gray-600 transition-colors"
                 >
                   <span className="flex items-center gap-2">
-                    <item.icon className="w-4 h-4" />
+                    <item.icon className="w-3.5 h-3.5" />
                     {item.label}
                   </span>
                   {isOpen
@@ -145,39 +124,45 @@ export default function Sidebar() {
                   }
                 </button>
 
+                {/* Children */}
                 {isOpen && (
-                  <div className="ml-4 mt-0.5 space-y-0.5 border-l-2 border-gray-800 pl-2">
-                    {item.children.map((child) => (
-                      <button
-                        key={child.id}
-                        onClick={() => handleNav(child)}
-                        className={`w-full flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm transition-colors ${
-                          isActive(child.path)
-                            ? 'bg-indigo-600 text-white font-medium'
-                            : 'text-gray-400 hover:bg-gray-800 hover:text-white'
-                        }`}
-                      >
-                        <child.icon className="w-3.5 h-3.5" />
-                        {child.label}
-                      </button>
-                    ))}
+                  <div className="mb-1">
+                    {item.children.map((child) => {
+                      const active = isActive(child.path);
+                      return (
+                        <button
+                          key={child.id}
+                          onClick={() => handleNav(child)}
+                          className={`w-full flex items-center gap-2.5 px-4 py-2 text-sm transition-all relative ${
+                            active
+                              ? 'bg-pink-50 text-pink-600 font-medium border-l-[3px] border-pink-500 pl-[13px]'
+                              : 'text-gray-500 hover:bg-gray-50 hover:text-gray-800 border-l-[3px] border-transparent pl-[13px]'
+                          }`}
+                        >
+                          <child.icon className={`w-4 h-4 shrink-0 ${active ? 'text-pink-500' : 'text-gray-400'}`} />
+                          {child.label}
+                        </button>
+                      );
+                    })}
                   </div>
                 )}
               </div>
             );
           }
 
+          // ── Top-level item ───────────────────────────
+          const active = isActive(item.path);
           return (
             <button
               key={item.id}
               onClick={() => handleNav(item)}
-              className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm transition-colors ${
-                isActive(item.path)
-                  ? 'bg-indigo-600 text-white font-medium'
-                  : 'hover:bg-gray-800 hover:text-white'
+              className={`w-full flex items-center gap-2.5 px-4 py-2 text-sm transition-all relative ${
+                active
+                  ? 'bg-pink-50 text-pink-600 font-medium border-l-[3px] border-pink-500 pl-[13px]'
+                  : 'text-gray-500 hover:bg-gray-50 hover:text-gray-800 border-l-[3px] border-transparent pl-[13px]'
               }`}
             >
-              <item.icon className="w-4 h-4" />
+              <item.icon className={`w-4 h-4 shrink-0 ${active ? 'text-pink-500' : 'text-gray-400'}`} />
               {item.label}
             </button>
           );
