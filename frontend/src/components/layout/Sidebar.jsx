@@ -100,7 +100,26 @@ const NAV = [
     roles: ALL_ROLES,
     children: [
       { id: 'customer-feed', label: 'Customer Feed', path: '/activity/feed',  icon: MessageSquare },
-      { id: 'tasks',         label: 'Tasks',          path: '/activity/tasks', icon: CheckSquare   },
+      { id: 'tasks',         label: 'Tasks',         path: '/activity/tasks', icon: CheckSquare   },
+    ],
+  },
+  {
+    id: 'visits',
+    label: 'Visits',
+    icon: MapPin,
+    roles: ALL_ROLES,
+    children: [
+      { id: 'visit-management', label: 'Visit Management', path: '/visits/management', icon: MapPin   },
+      { id: 'visit-report',     label: 'Visit Report',     path: '/visits/report',     icon: FileText },
+    ],
+  },
+  {
+    id: 'appointments',
+    label: 'Appointments',
+    icon: Calendar,
+    roles: ALL_ROLES,
+    children: [
+      { id: 'appointment-desk', label: 'Appointment Desk', path: '/appointments/desk', icon: Calendar },
     ],
   },
 ];

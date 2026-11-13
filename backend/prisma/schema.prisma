@@ -83,6 +83,9 @@ model User {
   activities  Activity[]
   deals       Deal[]      @relation("DealOwner")
   visits      Visit[]
+
+  reminders        Reminder[] @relation("ReminderAssignee")
+  createdReminders Reminder[] @relation("ReminderCreator")
 }
 
 model Branch {
@@ -218,8 +221,9 @@ model Contact {
   createdAt      DateTime     @default(now())
   updatedAt      DateTime     @updatedAt
 
-  leads Lead[]
-  deals Deal[]
+  leads     Lead[]
+  deals     Deal[]
+  reminders Reminder[]
 
   @@unique([phone, companyId])
   @@index([branchId])
@@ -313,6 +317,33 @@ model Deal {
   @@index([stageId])
   @@index([ownerId])
   @@index([expectedCloseDate])
+}
+
+// ── Reminders ───────────────────────────────────────────
+
+enum ReminderStatus {
+  PENDING
+  COMPLETED
+}
+
+model Reminder {
+  id           String         @id @default(cuid())
+  title        String
+  description  String?
+  dueDate      DateTime
+  status       ReminderStatus @default(PENDING)
+  assignedToId String?
+  assignedTo   User?          @relation("ReminderAssignee", fields: [assignedToId], references: [id])
+  createdById  String?
+  createdBy    User?          @relation("ReminderCreator", fields: [createdById], references: [id])
+  contactId    String?
+  contact      Contact?       @relation(fields: [contactId], references: [id])
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+
+  @@index([assignedToId])
+  @@index([dueDate])
+  @@index([status])
 }
 
 // ── Lead-Linked Entities ────────────────────────────────
