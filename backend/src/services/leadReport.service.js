@@ -17,6 +17,13 @@ const ROW_INCLUDE = {
   status:     { select: { name: true } },
   createdBy:  { select: { name: true } },
   assignedTo: { select: { name: true } },
+  // Latest won deal — its date is the lead's purchase date
+  deals: {
+    where:   { stage: { name: { equals: 'Won', mode: 'insensitive' } } },
+    orderBy: { updatedAt: 'desc' },
+    take:    1,
+    select:  { updatedAt: true },
+  },
 };
 
 // Export / table column catalogue — the keys are shared with the frontend
@@ -27,6 +34,7 @@ export const COLUMNS = [
   ['marriageDate', 'Marriage Date'], ['owner', 'Owner'], ['assignedTo', 'Assigned To'],
   ['expectedWeight', 'Expected Weight (g)'], ['expectedAmount', 'Expected Amount'],
   ['dnf', 'Date Not Fixed'], ['lossReason', 'Loss Reason'],
+  ['area', 'Area'], ['purchaseDate', 'Purchase Date'],
 ];
 
 function outcomeOf(l) {
@@ -57,6 +65,8 @@ function toRow(l, firstStageName) {
     expectedAmount: l.expectedAmount ?? '',
     dnf:            l.dnf ? 'Yes' : 'No',
     lossReason:     l.lossReason || '',
+    area:           l.area || '',
+    purchaseDate:   l.isWon ? ymd(l.deals?.[0]?.updatedAt) : '',
   };
 }
 

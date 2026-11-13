@@ -46,6 +46,7 @@ import CrmAnalyticsPage     from '../pages/analytics/CrmAnalyticsPage.jsx';
 
 // Reports
 import LeadReportPage       from '../pages/reports/LeadReportPage.jsx';
+import InstoreLeadReportPage from '../pages/reports/InstoreLeadReportPage.jsx';
 
 export default function AppRoutes() {
   return (
@@ -79,7 +80,7 @@ export default function AppRoutes() {
           <Route path="/analytics/crm"      element={<CrmAnalyticsPage />} />
           <Route path="/reports"                      element={<ComingSoon name="Reports" />} />
           <Route path="/reports/leads"               element={<LeadReportPage />} />
-          <Route path="/reports/instore-leads"       element={<ComingSoon name="Instore Lead Report" />} />
+          <Route path="/reports/instore-leads"       element={<InstoreLeadReportPage />} />
           <Route path="/reports/bde"                 element={<ComingSoon name="BDE Wise Report" />} />
           <Route path="/reports/customer-feedback"   element={<ComingSoon name="Customer Feedback Report" />} />
           <Route path="/reports/incentive"           element={<ComingSoon name="Incentive Report" />} />
