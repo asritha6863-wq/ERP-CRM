@@ -38,6 +38,7 @@ import PipelinePage from '../pages/pipeline/PipelinePage.jsx';
 
 // Engagement
 import ReminderCenterPage from '../pages/engagement/ReminderCenterPage.jsx';
+import CampaignManagerPage from '../pages/engagement/CampaignManagerPage.jsx';
 
 export default function AppRoutes() {
   return (
@@ -63,7 +64,7 @@ export default function AppRoutes() {
           <Route path="/pipeline"      element={<PipelinePage />} />
           <Route path="/engagement"              element={<ComingSoon name="Engagement" />} />
           <Route path="/engagement/reminders"   element={<ReminderCenterPage />} />
-          <Route path="/engagement/campaigns"   element={<ComingSoon name="Campaign Manager" />} />
+          <Route path="/engagement/campaigns"   element={<CampaignManagerPage />} />
           <Route path="/engagement/celebration" element={<ComingSoon name="Celebration" />} />
           <Route path="/analytics"          element={<ComingSoon name="Analytics" />} />
           <Route path="/analytics/sales"    element={<ComingSoon name="Sales Performance" />} />

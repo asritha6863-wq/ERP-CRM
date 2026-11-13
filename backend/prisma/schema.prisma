@@ -86,6 +86,7 @@ model User {
 
   reminders        Reminder[] @relation("ReminderAssignee")
   createdReminders Reminder[] @relation("ReminderCreator")
+  campaigns        Campaign[]
 }
 
 model Branch {
@@ -344,6 +345,41 @@ model Reminder {
   @@index([assignedToId])
   @@index([dueDate])
   @@index([status])
+}
+
+// ── Campaigns ───────────────────────────────────────────
+
+enum CampaignChannel {
+  WHATSAPP
+  SMS
+  EMAIL
+  CALL
+}
+
+enum CampaignStatus {
+  SCHEDULED
+  ACTIVE
+  COMPLETED
+}
+
+model Campaign {
+  id             String          @id @default(cuid())
+  name           String
+  channel        CampaignChannel @default(WHATSAPP)
+  targetSegment  String?
+  scheduleDate   DateTime?
+  description    String?
+  status         CampaignStatus  @default(SCHEDULED)
+  sentCount      Int             @default(0)
+  deliveredCount Int             @default(0)
+  convertedCount Int             @default(0)
+  createdById    String?
+  createdBy      User?           @relation(fields: [createdById], references: [id])
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+
+  @@index([status])
+  @@index([scheduleDate])
 }
 
 // ── Lead-Linked Entities ────────────────────────────────
