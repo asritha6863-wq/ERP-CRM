@@ -92,6 +92,7 @@ model User {
 
   dateOfBirth      DateTime?
   createdLeads     Lead[]     @relation("LeadCreator")
+  feedbackServed   Feedback[] @relation("FeedbackSalesman")
   reminders        Reminder[] @relation("ReminderAssignee")
   createdReminders Reminder[] @relation("ReminderCreator")
   campaigns        Campaign[]
@@ -440,6 +441,11 @@ model Activity {
 }
 
 model Feedback {
+  invoiceRef String?
+  salesmanId String?
+  salesman   User?   @relation("FeedbackSalesman", fields: [salesmanId], references: [id])
+  @@index([createdAt])
+  @@index([rating])
   id        String    @id @default(cuid())
   leadId    String
   lead      Lead      @relation(fields: [leadId], references: [id])
