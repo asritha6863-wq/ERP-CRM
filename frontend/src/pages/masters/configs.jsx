@@ -110,88 +110,77 @@ export const COMPANIES_CONFIG = {
 
 export const STAGE_MASTER_CONFIG = {
   entity: 'pipeline-stages',
-  title: 'Stage Master',
+  title: 'CRM Stage Master',
+  badge: 'PIPELINE CONFIGURATION',
+  subtitle: 'Configure pipeline stages, stage ordering and visual identifiers',
+  addLabel: '+ Add Stage',
+  totalLabel: 'TOTAL STAGES',
   singular: 'Stage',
   hasIsActive: true,
+  hasCode: true,
+  hasOrder: false,
+  icon: null, // set in route
   columns: [
-    { key: 'name',  header: 'Stage Name', sortable: true },
-    { key: 'order', header: 'Order',      sortable: true },
+    { key: 'name',  header: 'Stage Name', bold: true },
+    { key: 'color', header: 'Color Identifier' },
   ],
   fields: [
     { key: 'name',  label: 'Stage Name', required: true },
     { key: 'order', label: 'Order', type: 'number', defaultValue: 0 },
+    { key: 'color', label: 'Color Identifier', type: 'color', defaultValue: '#ec4899', placeholder: 'e.g. PINK-500' },
   ],
 };
 
 export const AREA_MASTER_CONFIG = {
   entity: 'areas',
-  title: 'Area Master',
+  title: 'CRM Area Master',
+  badge: 'TERRITORY MANAGEMENT',
+  subtitle: 'Configure customer areas, postal codes, and branch associations',
+  addLabel: '+ Add Area',
+  totalLabel: 'TOTAL AREAS',
   singular: 'Area',
   hasIsActive: true,
-  columns: [{ key: 'name', header: 'Area Name', sortable: true }],
-  fields:  [{ key: 'name', label: 'Area Name', required: true }],
+  hasCode: true,
+  columns: [
+    { key: 'name', header: 'Area Name', bold: true },
+  ],
+  fields: [
+    { key: 'name',    label: 'Area Name', required: true },
+    { key: 'pincode', label: 'Pincode', placeholder: 'e.g. 673027' },
+  ],
 };
 
 export const LOCATION_MASTER_CONFIG = {
   entity: 'locations',
-  title: 'Location Master',
+  title: 'CRM Location Master',
+  badge: 'REGIONAL HUBS',
+  subtitle: 'Configure customer locations and geographical groupings',
+  addLabel: '+ Add Location',
+  totalLabel: 'TOTAL LOCATIONS',
   singular: 'Location',
   hasIsActive: true,
-  columns: [{ key: 'name', header: 'Location Name', sortable: true }],
-  fields:  [{ key: 'name', label: 'Location Name', required: true }],
-};
-
-export const CHANNEL_MASTER_CONFIG = {
-  entity: 'channels',
-  title: 'Channel Master',
-  singular: 'Channel',
-  hasIsActive: true,
-  columns: [{ key: 'name', header: 'Channel Name', sortable: true }],
-  fields:  [{ key: 'name', label: 'Channel Name', required: true }],
-};
-
-export const LEAD_STATUS_MASTER_CONFIG = {
-  entity: 'lead-statuses',
-  title: 'Lead Status Master',
-  singular: 'Lead Status',
-  hasIsActive: true,
+  hasCode: true,
+  searchPlaceholder: 'Search locations…',
   columns: [
-    { key: 'name', header: 'Name', sortable: true },
-    {
-      key: 'color',
-      header: 'Color',
-      render: (val) => (
-        <div className="flex items-center gap-2">
-          <span style={{ background: val }} className="w-4 h-4 rounded-full inline-block border border-gray-200" />
-          <span className="text-gray-500 text-xs">{val}</span>
-        </div>
-      ),
-    },
+    { key: 'name', header: 'Location Name', bold: true },
   ],
   fields: [
-    { key: 'name',  label: 'Status Name', required: true },
-    { key: 'color', label: 'Colour', type: 'color', defaultValue: '#6b7280' },
+    { key: 'name', label: 'Location Name', required: true },
   ],
 };
 
 export const LEAD_SOURCE_MASTER_CONFIG = {
   entity: 'lead-sources',
   title: 'Lead Source Master',
+  badge: 'LEAD ORIGINS',
+  subtitle: 'Configure customer acquisition lead sources (Walk-in, Website, Instagram, Facebook, etc.)',
+  addLabel: '+ Add Source',
+  totalLabel: 'TOTAL SOURCES',
   singular: 'Lead Source',
   hasIsActive: true,
+  hasCode: true,
   columns: [
-    { key: 'name', header: 'Name', sortable: true },
-    {
-      key: 'defaultChannel',
-      header: 'Default Channel',
-      render: (val) => (
-        <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
-          val === 'INSTORE' ? 'bg-blue-100 text-blue-700' : 'bg-orange-100 text-orange-700'
-        }`}>
-          {val === 'INSTORE' ? 'Instore' : 'Outdoor'}
-        </span>
-      ),
-    },
+    { key: 'name', header: 'Source Description', bold: true },
   ],
   fields: [
     { key: 'name', label: 'Source Name', required: true },
@@ -205,5 +194,43 @@ export const LEAD_SOURCE_MASTER_CONFIG = {
       ],
       defaultValue: 'OUTDOOR',
     },
+  ],
+};
+
+export const CHANNEL_MASTER_CONFIG = {
+  entity: 'channels',
+  title: 'CRM Channel Master',
+  badge: 'ATTRIBUTION',
+  subtitle: 'Configure attribution channels for leads and marketing segmentation',
+  addLabel: '+ Add Channel',
+  totalLabel: 'TOTAL CHANNELS',
+  singular: 'Channel',
+  hasIsActive: true,
+  hasCode: true,
+  columns: [
+    { key: 'name', header: 'Channel Name', bold: true },
+  ],
+  fields: [
+    { key: 'name', label: 'Channel Name', required: true },
+  ],
+};
+
+export const LEAD_STATUS_MASTER_CONFIG = {
+  entity: 'lead-statuses',
+  title: 'CRM Status Master',
+  badge: 'PIPELINE STATUSES',
+  subtitle: 'Configure lead pipeline statuses and color indicators',
+  addLabel: '+ Add Status',
+  totalLabel: 'TOTAL STATUSES',
+  singular: 'Status',
+  hasIsActive: true,
+  hasCode: true,
+  columns: [
+    { key: 'name',  header: 'Status Name', bold: true },
+    { key: 'color', header: 'Color' },
+  ],
+  fields: [
+    { key: 'name',  label: 'Status Name', required: true },
+    { key: 'color', label: 'Color', type: 'color', defaultValue: '#6b7280', placeholder: 'e.g. EMERALD-500' },
   ],
 };
