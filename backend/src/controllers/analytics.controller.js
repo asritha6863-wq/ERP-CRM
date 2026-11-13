@@ -7,3 +7,6 @@ export const salesPerformance = asyncHandler(async (req, res) =>
 export const locationSales = asyncHandler(async (req, res) =>
   res.json(await analyticsService.locationSales(req.user, req.query))
 );
+export const crmAnalytics = asyncHandler(async (req, res) =>
+  res.json(await analyticsService.crmAnalytics(req.user, req.query))
+);

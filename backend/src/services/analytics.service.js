@@ -90,6 +90,110 @@ export async function salesPerformance(user, query) {
 
 // ── Location Wise Sales ────────────────────────────────────────────
 
+// ── CRM Analytics ──────────────────────────────────────────────────
+
+const PERIOD_DAYS = { '7D': 7, '30D': 30, '90D': 90, YEAR: 365 };
+const DAY_MS = 86_400_000;
+
+function branchFor(user, branchId) {
+  return user.role === 'MANAGER' ? user.branchId : user.role === 'ADMIN' ? branchId : null;
+}
+
+function dealScope(user, branchId) {
+  if (user.role === 'SALES') return { ownerId: user.id };
+  const b = branchFor(user, branchId);
+  return b ? { OR: [{ lead: { branchId: b } }, { contact: { branchId: b } }] } : {};
+}
+
+// Leads and contacts: Sales sees assigned records, everyone else is branch-scoped
+function ownedScope(user, branchId) {
+  if (user.role === 'SALES') return { assignedToId: user.id };
+  const b = branchFor(user, branchId);
+  return b ? { branchId: b } : {};
+}
+
+export async function crmAnalytics(user, query) {
+  const period = PERIOD_DAYS[query.period] ? query.period : '30D';
+  const now    = new Date();
+  const since  = new Date(now.getTime() - PERIOD_DAYS[period] * DAY_MS);
+  const recent = new Date(now.getTime() - 30 * DAY_MS);
+  const year   = now.getFullYear();
+
+  const deals    = dealScope(user, query.branchId);
+  const leads    = ownedScope(user, query.branchId);
+  const contacts = ownedScope(user, query.branchId);
+  const inPeriod = { createdAt: { gte: since } };
+
+  // Monthly won revenue (SQL so it scales); a deal's close month is when it was last updated
+  const conds = [
+    Prisma.sql`LOWER(s."name") = 'won'`,
+    Prisma.sql`EXTRACT(YEAR FROM d."updatedAt") = ${year}::int`,
+  ];
+  if (user.role === 'SALES') {
+    conds.push(Prisma.sql`d."ownerId" = ${user.id}`);
+  } else {
+    const b = branchFor(user, query.branchId);
+    if (b) conds.push(Prisma.sql`COALESCE(c."branchId", l."branchId") = ${b}`);
+  }
+
+  const [
+    stages, openByStage, totalLeads, qualifiedLeads, pipelineDeals, closedWon,
+    sentiment, dbTotal, dbRecent, monthlyRows,
+  ] = await Promise.all([
+    prisma.pipelineStage.findMany({ select: { id: true, name: true, order: true } }),
+    prisma.deal.groupBy({
+      by: ['stageId'],
+      where: { ...deals, ...inPeriod, NOT: [{ stage: wonStage }, { stage: lostStage }] },
+      _sum: { value: true }, _count: { _all: true },
+    }),
+    prisma.lead.count({ where: { ...leads, ...inPeriod } }),
+    prisma.lead.count({ where: { ...leads, ...inPeriod, status: { name: { equals: 'Qualified', mode: 'insensitive' } } } }),
+    prisma.deal.count({ where: { ...deals, ...inPeriod } }),
+    prisma.deal.count({ where: { ...deals, ...inPeriod, stage: wonStage } }),
+    prisma.lead.groupBy({ by: ['sentiment'], where: { ...leads, ...inPeriod }, _count: { _all: true } }),
+    prisma.contact.count({ where: { ...contacts, isActive: true } }),
+    prisma.contact.count({ where: { ...contacts, isActive: true, updatedAt: { gte: recent } } }),
+    prisma.$queryRaw`
+      SELECT EXTRACT(MONTH FROM d."updatedAt")::int AS month, COALESCE(SUM(d."value"), 0)::float8 AS value
+      FROM "Deal" d
+      JOIN "PipelineStage" s ON s."id" = d."stageId"
+      LEFT JOIN "Contact" c ON c."id" = d."contactId"
+      LEFT JOIN "Lead" l    ON l."id" = d."leadId"
+      WHERE ${Prisma.join(conds, ' AND ')}
+      GROUP BY 1`,
+  ]);
+
+  const stageById = new Map(stages.map((s) => [s.id, s]));
+  const distribution = openByStage
+    .map((g) => ({
+      stage: stageById.get(g.stageId)?.name || 'Unknown',
+      order: stageById.get(g.stageId)?.order ?? 99,
+      value: g._sum.value || 0,
+      count: g._count._all,
+    }))
+    .sort((a, b) => a.order - b.order);
+
+  const monthly = Array(12).fill(0);
+  for (const r of monthlyRows) monthly[r.month - 1] = r.value;
+
+  const sentimentCounts = Object.fromEntries(sentiment.map((s) => [s.sentiment, s._count._all]));
+
+  return {
+    period,
+    totalPipeline:       distribution.reduce((s, d) => s + d.value, 0),
+    activePipelineDeals: distribution.reduce((s, d) => s + d.count, 0),
+    distribution,
+    database: { total: dbTotal, recentlyActive: dbRecent },
+    monthly,
+    year,
+    funnel: {
+      totalLeads, pipelineDeals, qualifiedLeads, closedWon,
+      conversionRate: totalLeads > 0 ? Math.min(100, (closedWon / totalLeads) * 100) : 0,
+    },
+    behavioral: ['POSITIVE', 'NEUTRAL', 'NEGATIVE'].map((k) => ({ label: k, count: sentimentCounts[k] || 0 })),
+  };
+}
+
 export async function locationSales(user, query) {
   const { branchId, companyId } = query;
 
