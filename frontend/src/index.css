@@ -1,3 +1,85 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer base {
+  :root {
+    --brand: #f72f6e;
+    --brand-dark: #c40f56;
+    --brand-light: #fff0f5;
+    --sidebar-bg: #0f0f1a;
+    --sidebar-text: #9ca3af;
+    --sidebar-active: #f72f6e;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    font-family: 'Inter', system-ui, sans-serif;
+    background-color: #f8f8fb;
+    color: #1a1a2e;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* Custom scrollbar */
+  ::-webkit-scrollbar { width: 5px; height: 5px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: #e5e7eb; border-radius: 999px; }
+  ::-webkit-scrollbar-thumb:hover { background: #d1d5db; }
+}
+
+@layer components {
+  /* ── Brand button ── */
+  .btn-brand {
+    @apply inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-brand-500 hover:bg-brand-600
+           text-white text-sm font-semibold shadow-brand transition-all duration-200
+           focus:outline-none focus:ring-2 focus:ring-brand-300 focus:ring-offset-2;
+  }
+  .btn-secondary {
+    @apply inline-flex items-center gap-2 px-5 py-2.5 rounded-xl border border-gray-200
+           bg-white hover:bg-gray-50 text-gray-700 text-sm font-semibold transition-all duration-200;
+  }
+
+  /* ── Card ── */
+  .card {
+    @apply bg-white rounded-2xl border border-gray-100 shadow-card;
+  }
+  .card-hover {
+    @apply card transition-all duration-200 hover:shadow-card-hover hover:border-brand-100;
+  }
+
+  /* ── Badge ── */
+  .badge-brand {
+    @apply inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold
+           tracking-wide bg-brand-50 text-brand-500 border border-brand-200;
+  }
+
+  /* ── Input ── */
+  .input {
+    @apply w-full rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm
+           placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-brand-300
+           focus:border-brand-400 transition-all duration-150;
+  }
+
+  /* ── Active status pill ── */
+  .pill-active {
+    @apply inline-flex items-center gap-1 text-[10px] font-bold rounded-full px-2.5 py-0.5
+           border bg-emerald-50 text-emerald-700 border-emerald-200;
+  }
+
+  /* ── Print ── */
+  @media print {
+    .no-print { display: none !important; }
+    body { background: white; }
+  }
+}
+
+/* Page transition */
+.page-enter { animation: fadeUp 0.2s ease both; }
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}

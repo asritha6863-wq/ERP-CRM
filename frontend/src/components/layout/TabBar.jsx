@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom';
-import { X, XSquare } from 'lucide-react';
+import { X } from 'lucide-react';
 import { useTabs } from '../../context/TabContext.jsx';
 
 export default function TabBar() {
@@ -9,43 +9,40 @@ export default function TabBar() {
   if (tabs.length === 0) return null;
 
   return (
-    <div className="print:hidden flex items-center bg-gray-100 border-b border-gray-200 overflow-x-auto shrink-0">
-      <div className="flex items-center flex-1 min-w-0">
-        {tabs.map((tab) => {
-          const isActive = tab.id === activeId;
-          return (
-            <button
-              key={tab.id}
-              onClick={() => { setActiveId(tab.id); navigate(tab.path); }}
-              className={`flex items-center gap-2 px-4 py-2 text-sm border-r border-gray-200 shrink-0 max-w-[180px] transition-colors ${
-                isActive
-                  ? 'bg-white text-indigo-600 font-medium border-t-2 border-t-indigo-600'
-                  : 'text-gray-600 hover:bg-gray-50'
-              }`}
+    <div className="no-print flex items-center bg-white border-b border-gray-100 overflow-x-auto shrink-0 px-4 gap-1"
+      style={{ minHeight: 40 }}>
+      {tabs.map((tab) => {
+        const isActive = tab.id === activeId;
+        return (
+          <button
+            key={tab.id}
+            onClick={() => { setActiveId(tab.id); navigate(tab.path); }}
+            className={`group inline-flex items-center gap-1.5 px-3 py-2 text-xs font-medium rounded-lg shrink-0 max-w-[160px] transition-all ${
+              isActive
+                ? 'text-brand-600 bg-brand-50 border border-brand-200'
+                : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50 border border-transparent'
+            }`}
+          >
+            {isActive && <span className="w-1.5 h-1.5 rounded-full bg-brand-500 shrink-0" />}
+            <span className="truncate">{tab.label}</span>
+            <span
+              role="button"
+              tabIndex={0}
+              onClick={(e) => { e.stopPropagation(); closeTab(tab.id, navigate); }}
+              onKeyDown={(e) => e.key === 'Enter' && closeTab(tab.id, navigate)}
+              className="ml-0.5 rounded p-0.5 hover:bg-brand-100 text-gray-400 hover:text-brand-600 shrink-0"
             >
-              <span className="truncate">{tab.label}</span>
-              <span
-                role="button"
-                tabIndex={0}
-                aria-label={`Close ${tab.label}`}
-                onClick={(e) => { e.stopPropagation(); closeTab(tab.id, navigate); }}
-                onKeyDown={(e) => e.key === 'Enter' && closeTab(tab.id, navigate)}
-                className="ml-1 rounded hover:bg-gray-200 p-0.5 shrink-0"
-              >
-                <X className="w-3 h-3" />
-              </span>
-            </button>
-          );
-        })}
-      </div>
+              <X className="w-3 h-3" />
+            </span>
+          </button>
+        );
+      })}
       {tabs.length > 1 && (
         <button
           onClick={() => closeAll(navigate)}
-          className="flex items-center gap-1 px-3 py-2 text-xs text-gray-500 hover:text-red-600 hover:bg-red-50 shrink-0 transition-colors"
-          title="Close all tabs"
+          className="ml-auto text-[10px] text-gray-400 hover:text-brand-500 px-2 py-1 rounded-lg hover:bg-brand-50 shrink-0 transition-colors"
         >
-          <XSquare className="w-4 h-4" />
-          <span className="hidden sm:inline">Close all</span>
+          Close All
         </button>
       )}
     </div>
