@@ -97,6 +97,7 @@ model User {
   advisedAppts     Appointment[]     @relation("AppointmentAdvisor")
   createdAppts     Appointment[]     @relation("AppointmentCreator")
   interactionLogs  InteractionLog[]  @relation("InteractionLogStaff")
+  createdSegments  Segment[]         @relation("SegmentCreator")
   assignedTasks   Task[]             @relation("TaskAssignee")
   createdTasks    Task[]             @relation("TaskCreator")
   reminders        Reminder[] @relation("ReminderAssignee")
@@ -246,6 +247,7 @@ model Contact {
   tasks     Task[]
   appointments Appointment[]
   interactionLogs InteractionLog[]
+
 
   dateOfBirth     DateTime?
   anniversaryDate DateTime?
@@ -463,6 +465,25 @@ model FeedbackRequest {
 
   @@index([status, createdAt])
   @@index([leadId])
+}
+
+// ── Customer Segments ───────────────────────────────────
+
+model Segment {
+  id          String    @id @default(cuid())
+  name        String
+  description String?
+  branchId    String?
+  criteria    Json
+  matchAll    Boolean   @default(true)
+  memberCount Int       @default(0)
+  isActive    Boolean   @default(true)
+  createdById String?
+  createdBy   User?     @relation("SegmentCreator", fields: [createdById], references: [id])
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([isActive])
 }
 
 // ── Interaction Logs ─────────────────────────────────────
