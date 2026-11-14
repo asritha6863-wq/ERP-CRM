@@ -1,4 +1,4 @@
-// Configuration objects that drive MasterCrudScreen for each master entity
+﻿// Configuration objects that drive MasterCrudScreen for each master entity
 
 export const BRANCHES_CONFIG = {
   entity: 'branches',
@@ -156,7 +156,7 @@ export const AREA_MASTER_CONFIG = {
       key: 'locations',
       header: 'Locations',
       render: (v) => v
-        ? <span className="inline-flex items-center px-2 py-0.5 rounded bg-gray-100 text-gray-700 text-xs font-medium uppercase">{v}</span>
+        ? <span className="flex flex-wrap gap-1">{String(v).split(",").map((l) => l.trim()).filter(Boolean).map((l) => <span key={l} className="inline-flex items-center px-2 py-0.5 rounded border border-gray-200 bg-gray-50 text-gray-700 text-[11px] font-medium uppercase">{l}</span>)}</span>
         : <span className="text-gray-400 text-xs italic">No locations</span>,
     },
   ],
@@ -252,3 +252,4 @@ export const LEAD_STATUS_MASTER_CONFIG = {
     { key: 'color', label: 'Color', type: 'color', defaultValue: '#6b7280', placeholder: 'e.g. EMERALD-500' },
   ],
 };
+
