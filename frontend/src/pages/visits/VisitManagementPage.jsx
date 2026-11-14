@@ -43,7 +43,8 @@ export default function VisitManagementPage() {
     try {
       const params = { ...filters, view, page, limit: PAGE_SIZE };
       Object.keys(params).forEach((k) => !params[k] && delete params[k]);
-      setResult((r) => ({ counters: [], ...r, ...(await api.get('/visits', { params })).data }));
+      const res = await api.get('/visits', { params });
+      setResult((r) => ({ counters: [], ...r, ...res.data }));
     } catch (err) {
       setError(err.response?.data?.error || 'Failed to load visits');
     } finally { setLoading(false); }
