@@ -58,6 +58,7 @@ import AppointmentDeskPage  from '../pages/appointments/AppointmentDeskPage.jsx'
 import CustomerIntelligencePage from '../pages/customers/CustomerIntelligencePage.jsx';
 import InteractionLogsPage     from '../pages/customers/InteractionLogsPage.jsx';
 import CustomerSegmentationPage from '../pages/customers/CustomerSegmentationPage.jsx';
+import MarriagePurchasePage     from '../pages/customers/MarriagePurchasePage.jsx';
 import CustomerProfilePage  from '../pages/customers/CustomerProfilePage.jsx';
 
 export default function AppRoutes() {
@@ -81,7 +82,7 @@ export default function AppRoutes() {
           <Route path="/customer-intelligence" element={<CustomerIntelligencePage />} />
           <Route path="/interaction-logs"      element={<InteractionLogsPage />} />
           <Route path="/customer-segmentation" element={<CustomerSegmentationPage />} />
-          <Route path="/marriage-purchase"     element={<ComingSoon name="Marriage Purchase" />} />
+          <Route path="/marriage-purchase"     element={<MarriagePurchasePage />} />
           <Route path="/pipeline"      element={<PipelinePage />} />
           <Route path="/engagement"              element={<ComingSoon name="Engagement" />} />
           <Route path="/engagement/reminders"   element={<ReminderCenterPage />} />

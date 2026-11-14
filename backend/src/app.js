@@ -23,6 +23,7 @@ import visitManagementRoutes from './routes/visitManagement.routes.js';
 import appointmentsRoutes    from './routes/appointments.routes.js';
 import interactionLogsRoutes from './routes/interactionLogs.routes.js';
 import segmentsRoutes       from './routes/segments.routes.js';
+import marriagePurchaseRoutes from './routes/marriagePurchase.routes.js';
 import { errorHandler } from './middleware/error.middleware.js';
 
 dotenv.config();
@@ -65,6 +66,7 @@ app.use('/api/visits', visitManagementRoutes);
 app.use('/api/appointments', appointmentsRoutes);
 app.use('/api/interaction-logs', interactionLogsRoutes);
 app.use('/api/segments', segmentsRoutes);
+app.use('/api/marriage-purchases', marriagePurchaseRoutes);
 
 // 404 handler
 app.use((req, res) => {

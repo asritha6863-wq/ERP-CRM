@@ -98,6 +98,7 @@ model User {
   createdAppts     Appointment[]     @relation("AppointmentCreator")
   interactionLogs  InteractionLog[]  @relation("InteractionLogStaff")
   createdSegments  Segment[]         @relation("SegmentCreator")
+  bridalAttendances BridalAttendee[] @relation("BridalAttendeeStaff")
   assignedTasks   Task[]             @relation("TaskAssignee")
   createdTasks    Task[]             @relation("TaskCreator")
   reminders        Reminder[] @relation("ReminderAssignee")
@@ -247,6 +248,7 @@ model Contact {
   tasks     Task[]
   appointments Appointment[]
   interactionLogs InteractionLog[]
+  bridalAttendee  BridalAttendee?
 
 
   dateOfBirth     DateTime?
@@ -465,6 +467,18 @@ model FeedbackRequest {
 
   @@index([status, createdAt])
   @@index([leadId])
+}
+
+// ── Bridal Attendee ──────────────────────────────────────
+
+model BridalAttendee {
+  id        String  @id @default(cuid())
+  contactId String  @unique
+  contact   Contact @relation(fields: [contactId], references: [id])
+  userId    String
+  user      User    @relation("BridalAttendeeStaff", fields: [userId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 // ── Customer Segments ───────────────────────────────────
