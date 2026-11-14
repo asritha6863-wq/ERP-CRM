@@ -16,13 +16,13 @@ function buildWhere(user, q) {
   const sc = scope(user);
   const parts = [
     { isActive: true, ...sc },
-    { OR: [{ marriageDate: { not: null } }, { leads: { some: { brideGroom: { not: null } } } }] },
+    { OR: [{ anniversaryDate: { not: null } }, { leads: { some: { brideGroom: { not: null } } } }] },
   ];
   if (q.marriageFrom || q.marriageTo) {
     const r = {};
     if (parseDay(q.marriageFrom)) r.gte = parseDay(q.marriageFrom);
     if (parseDay(q.marriageTo))   r.lte = new Date(parseDay(q.marriageTo).getTime() + DAY - 1);
-    parts.push({ marriageDate: r });
+    parts.push({ anniversaryDate: r });
   }
   for (const term of (q.search || '').trim().split(/\s+/).filter(Boolean)) {
     parts.push({ OR: [
@@ -45,12 +45,11 @@ function computeStatus(marriageDate, attendeeId) {
 function toRow(c) {
   const deal = c.deals?.[0];
   const a    = c.bridalAttendee;
-  const status = computeStatus(c.marriageDate, a?.userId);
-  return {
+  const status = computeStatus(c.anniversaryDate, a?.userId);
     id:           c.id,
     customer:     `${c.firstName} ${c.lastName}`.trim(),
     phone:        c.phone || '',
-    marriageDate: ymd(c.marriageDate),
+    marriageDate: ymd(c.anniversaryDate),
     invoiceRef:   deal?.invoiceRef || '',
     amount:       deal?.value      ?? 0,
     attendeeId:   a?.userId        || '',
@@ -77,7 +76,7 @@ export async function listMarriagePurchases(user, q) {
   const page  = Math.max(1, +q.page || 1);
 
   const [contacts, total] = await Promise.all([
-    prisma.contact.findMany({ where, skip: (page - 1) * take, take, orderBy: [{ marriageDate: 'asc' }, { firstName: 'asc' }], include: INCLUDE }),
+    prisma.contact.findMany({ where, skip: (page - 1) * take, take, orderBy: [{ anniversaryDate: 'asc' }, { firstName: 'asc' }], include: INCLUDE }),
     prisma.contact.count({ where }),
   ]);
 
@@ -99,7 +98,7 @@ export async function assignAttendee(user, contactId, data) {
   const { userId } = data;
   if (!userId) throw { statusCode: 400, message: 'userId is required' };
 
-  const contact = await prisma.contact.findFirst({ where: { AND: [{ id: contactId }, scope(user)] } });
+  const contact = await prisma.contact.findFirst({ where: { AND: [{ id: contactId }, Object.keys(scope(user)).length ? scope(user) : {}] } });
   if (!contact) throw { statusCode: 404, message: 'Contact not found' };
 
   const result = await prisma.bridalAttendee.upsert({
@@ -113,6 +112,6 @@ export async function assignAttendee(user, contactId, data) {
     contactId,
     attendeeId: result.userId,
     attendee:   result.user?.name || '',
-    status:     computeStatus(contact.marriageDate, result.userId),
+    status:     computeStatus(contact.anniversaryDate, result.userId),
   };
 }
