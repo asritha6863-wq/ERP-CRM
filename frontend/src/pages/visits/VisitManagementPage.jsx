@@ -43,7 +43,7 @@ export default function VisitManagementPage() {
     try {
       const params = { ...filters, view, page, limit: PAGE_SIZE };
       Object.keys(params).forEach((k) => !params[k] && delete params[k]);
-      setResult((await api.get('/visits', { params })).data);
+      setResult((r) => ({ counters: [], ...r, ...(await api.get('/visits', { params })).data }));
     } catch (err) {
       setError(err.response?.data?.error || 'Failed to load visits');
     } finally { setLoading(false); }
@@ -137,7 +137,7 @@ export default function VisitManagementPage() {
         <FilterField label="Counter">
           <select value={filters.counter} onChange={setFilter('counter')} className={INPUT}>
             <option value="">All Counters</option>
-            {[...new Set([...COUNTERS, ...result.counters])].filter(Boolean).map((c) => <option key={c} value={c}>{c}</option>)}
+            {[...new Set([...COUNTERS, ...(result.counters || [])])].filter(Boolean).map((c) => <option key={c} value={c}>{c}</option>)}
           </select>
         </FilterField>
         <FilterField label="Search Customer">
@@ -386,7 +386,7 @@ function VisitModal({ open, initial, lookups, onClose, onSaved }) {
             <Field label="ASSIGN TO SALES STAFF *">
               <select value={form.userId} onChange={set('userId')} className={INPUT} disabled={user?.role === 'SALES'}>
                 <option value="">Select Staff</option>
-                {lookups.staff.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
+                {(lookups.staff || []).map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
               </select>
             </Field>
             <Field label="PURPOSE / DETAILS *">
