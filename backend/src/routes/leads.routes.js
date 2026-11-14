@@ -1,5 +1,6 @@
-import { Router }    from 'express';
+﻿import { Router }    from 'express';
 import multer        from 'multer';
+import { importLeadsFile } from '../controllers/import.controller.js';
 import { authenticate }  from '../middleware/auth.middleware.js';
 import {
   list, getOne, create, update, bulkAssign, convert,
@@ -22,6 +23,7 @@ router.post('/:id/win',                win);
 router.post('/:id/lose',               lose);
 router.get('/:id/activities',          getActivities);
 router.post('/:id/activities',         postActivity);
-router.post('/import', upload.single('file'), importFile);
+router.post('/import', upload.single('file'), importLeadsFile);
 
 export default router;
+

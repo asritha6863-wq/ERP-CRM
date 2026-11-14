@@ -1,4 +1,4 @@
-/**
+﻿/**
  * CRMMasterScreen — reusable master list screen matching the CRM design system.
  *
  * config shape:
@@ -24,6 +24,8 @@ import { Plus, Search, Pencil, ToggleLeft, ToggleRight, Maximize2, Check } from 
 import useMaster from '../../hooks/useMaster.js';
 import Pagination from '../../components/ui/Pagination.jsx';
 import api from '../../services/api.js';
+import ImportModal, { AREA_FIELDS, NAME_FIELDS } from '../leads/ImportModal.jsx';
+import { Upload } from 'lucide-react';
 
 // Map tailwind-name colours to hex for dot display
 const COLOR_MAP = {
@@ -51,10 +53,11 @@ export default function CRMMasterScreen({ config }) {
     data, total, pages, page, setPage,
     search, setSearch,
     loading, error,
-    create, update, toggle, limit,
+    create, update, toggle, limit, refetch,
   } = useMaster(config.entity);
 
   const [modalOpen, setModalOpen] = useState(false);
+  const [importOpen, setImportOpen] = useState(false);
   const [editing, setEditing]     = useState(null);
   const [form, setForm]           = useState({});
   const [saving, setSaving]       = useState(false);
@@ -155,6 +158,14 @@ export default function CRMMasterScreen({ config }) {
             <Maximize2 className="w-4 h-4" />
           </button>
 
+          {config.entity !== 'branches' && config.entity !== 'companies' && (
+            <button
+              onClick={() => setImportOpen(true)}
+              className="flex items-center gap-1.5 px-3 py-2 rounded-lg border border-gray-200 hover:bg-gray-50 text-sm text-gray-600"
+            >
+              <Upload className="w-4 h-4" /> Import
+            </button>
+          )}
           <button
             onClick={openCreate}
             className="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-gray-900 hover:bg-gray-800 text-white text-sm font-medium transition-colors"
@@ -368,6 +379,9 @@ export default function CRMMasterScreen({ config }) {
           </div>
         </div>
       )}
+          <ImportModal open={importOpen} onClose={() => setImportOpen(false)} onDone={refetch}
+        title={"Import " + (config.title || 'Master')} endpoint={`/masters/${config.entity}/import`}
+        fields={config.entity === 'areas' ? AREA_FIELDS : NAME_FIELDS} templateName={config.entity + '_template'} />
     </div>
   );
 }

@@ -1,6 +1,7 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+﻿import { useState, useEffect, useCallback, useRef } from 'react';
 import { BarChart3, Users, UserPlus, CheckCircle2, XCircle, MapPin, Maximize2, RefreshCw, Download, ChevronDown, Columns3 } from 'lucide-react';
 import api from '../../services/api.js';
+import { downloadCsvResponseAsExcel } from '../../utils/excel.js';
 import useLookups from '../../hooks/useLookups.js';
 import Pagination from '../../components/ui/Pagination.jsx';
 import { useGlobalFilter } from '../../context/GlobalFilterContext.jsx';
@@ -101,11 +102,8 @@ export default function VisitReportPage() {
     setExporting(true); setError('');
     try {
       const res = await api.get('/visits/export', { params: queryParams(), responseType: 'blob' });
-      const url = URL.createObjectURL(res.data);
-      const a = Object.assign(document.createElement('a'), { href: url, download: 'visit-report.csv' });
-      document.body.appendChild(a); a.click(); a.remove();
-      URL.revokeObjectURL(url);
-    } catch { setError('CSV export failed. Please try again.'); }
+      await downloadCsvResponseAsExcel(res.data, 'visit-report.xlsx');
+    } catch { setError('Excel export failed. Please try again.'); }
     finally { setExporting(false); }
   };
 
@@ -149,7 +147,7 @@ export default function VisitReportPage() {
             <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} /> Refresh
           </button>
           <button onClick={exportCsv} disabled={exporting} className="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-gray-900 hover:bg-gray-800 text-white text-xs font-semibold disabled:opacity-60">
-            <Download className="w-3.5 h-3.5" /> {exporting ? 'Exporting…' : 'Export CSV'}
+            <Download className="w-3.5 h-3.5" /> {exporting ? 'Exporting…' : 'Export Excel'}
           </button>
         </div>
       </div>
@@ -356,3 +354,4 @@ function FilterField({ label, children }) {
 }
 
 const INPUT = 'rounded-lg border border-gray-200 bg-white px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-pink-400';
+

@@ -1,9 +1,10 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+﻿import { useState, useEffect, useCallback, useRef } from 'react';
 import {
   FileText, Users, Check, X, Activity, TrendingUp, Columns3, Maximize2, Printer, Download,
   Briefcase, AlertCircle, ListX, Clock, ChevronDown, Table2, XCircle, CheckCircle2,
 } from 'lucide-react';
 import api from '../../services/api.js';
+import { downloadCsvResponseAsExcel } from '../../utils/excel.js';
 import useLookups from '../../hooks/useLookups.js';
 import Pagination from '../../components/ui/Pagination.jsx';
 import { useGlobalFilter } from '../../context/GlobalFilterContext.jsx';
@@ -131,12 +132,9 @@ export default function LeadReportPage({ instore = false }) {
         params: { ...queryParams(), columns: columns.join(',') },
         responseType: 'blob',
       });
-      const url = URL.createObjectURL(res.data);
-      const a = Object.assign(document.createElement('a'), { href: url, download: instore ? 'instore-lead-report.csv' : 'lead-report.csv' });
-      document.body.appendChild(a); a.click(); a.remove();
-      URL.revokeObjectURL(url);
+      await downloadCsvResponseAsExcel(res.data, instore ? 'instore-lead-report.xlsx' : 'lead-report.xlsx');
     } catch {
-      setError('CSV export failed. Please try again.');
+      setError('Excel export failed. Please try again.');
     } finally { setExporting(false); }
   };
 
@@ -286,7 +284,7 @@ export default function LeadReportPage({ instore = false }) {
             disabled={exporting}
             className="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-gray-900 hover:bg-gray-800 text-white text-xs font-semibold disabled:opacity-60"
           >
-            <Download className="w-3.5 h-3.5" /> {exporting ? 'Exporting…' : 'Export CSV'}
+            <Download className="w-3.5 h-3.5" /> {exporting ? 'Exporting…' : 'Export Excel'}
           </button>
         </div>
       </div>
@@ -535,3 +533,4 @@ function Select({ value, onChange, all, options }) {
 }
 
 const INPUT = 'w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-pink-400 focus:bg-white';
+

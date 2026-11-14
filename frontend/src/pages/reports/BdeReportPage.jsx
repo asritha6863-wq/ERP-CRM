@@ -1,9 +1,10 @@
-import { useState, useEffect, useCallback } from 'react';
+﻿import { useState, useEffect, useCallback } from 'react';
 import {
   FileText, Users, Clock, CheckCircle2, XCircle, DollarSign, RefreshCw, Maximize2,
   Printer, Download, Filter, Search,
 } from 'lucide-react';
 import api from '../../services/api.js';
+import { downloadCsvResponseAsExcel } from '../../utils/excel.js';
 import useLookups from '../../hooks/useLookups.js';
 import Pagination from '../../components/ui/Pagination.jsx';
 import { useGlobalFilter } from '../../context/GlobalFilterContext.jsx';
@@ -79,11 +80,8 @@ export default function BdeReportPage() {
         params: { ...queryParams(), columns: EXPORT_COLUMNS.join(',') },
         responseType: 'blob',
       });
-      const url = URL.createObjectURL(res.data);
-      const a = Object.assign(document.createElement('a'), { href: url, download: 'bde-lead-report.csv' });
-      document.body.appendChild(a); a.click(); a.remove();
-      URL.revokeObjectURL(url);
-    } catch { setError('CSV export failed. Please try again.'); }
+      await downloadCsvResponseAsExcel(res.data, 'bde-lead-report.xlsx');
+    } catch { setError('Excel export failed. Please try again.'); }
     finally { setExporting(false); }
   };
 
@@ -126,7 +124,7 @@ export default function BdeReportPage() {
             <Printer className="w-3.5 h-3.5" /> Print Report
           </button>
           <button onClick={exportCsv} disabled={exporting} className="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-gray-900 hover:bg-gray-800 text-white text-xs font-semibold disabled:opacity-60">
-            <Download className="w-3.5 h-3.5" /> {exporting ? 'Exporting…' : 'Export CSV'}
+            <Download className="w-3.5 h-3.5" /> {exporting ? 'Exporting…' : 'Export Excel'}
           </button>
         </div>
       </div>
@@ -277,3 +275,4 @@ function Select({ value, onChange, all, options }) {
 }
 
 const INPUT = 'w-full rounded-lg border border-gray-200 bg-white px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-pink-400';
+

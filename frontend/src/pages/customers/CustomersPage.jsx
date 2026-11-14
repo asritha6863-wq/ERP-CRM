@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+﻿import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { UserCheck, Plus, Search, ChevronRight } from 'lucide-react';
 import api from '../../services/api.js';
@@ -7,6 +7,7 @@ import { useAuth } from '../../context/AuthContext.jsx';
 import { useGlobalFilter } from '../../context/GlobalFilterContext.jsx';
 import Pagination from '../../components/ui/Pagination.jsx';
 import ContactFormModal from '../contacts/ContactFormModal.jsx';
+import ImportModal, { CONTACT_FIELDS } from '../leads/ImportModal.jsx';
 
 const PAGE_SIZE = 20;
 const inr = (n) => `₹${Math.round(n || 0).toLocaleString('en-IN')}`;
@@ -26,6 +27,7 @@ export default function CustomersPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError]     = useState('');
   const [formOpen, setFormOpen] = useState(false);
+  const [importOpen, setImportOpen] = useState(false);
 
   const isSales = user?.role === 'SALES';
 
@@ -80,6 +82,7 @@ export default function CustomersPage() {
             <p className="text-[10px] text-gray-400 leading-none tracking-wide">TOTAL CUSTOMERS</p>
             <p className="text-lg font-bold text-gray-900 leading-tight text-right font-mono">{result.total.toLocaleString('en-IN')}</p>
           </div>
+          <button onClick={() => setImportOpen(true)} className="flex items-center gap-1.5 px-3 py-2 rounded-lg border border-gray-200 hover:bg-gray-50 text-sm text-gray-600">Import</button>
           <button onClick={() => setFormOpen(true)} className="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-gray-900 hover:bg-gray-800 text-white text-sm font-medium">
             <Plus className="w-4 h-4" /> New Customer
           </button>
@@ -150,6 +153,7 @@ export default function CustomersPage() {
         </div>
       </div>
 
+      <ImportModal open={importOpen} onClose={() => setImportOpen(false)} onDone={fetchData} title="Import Customers" endpoint="/contacts/import" fields={CONTACT_FIELDS} templateName="customers_template" />
       <ContactFormModal open={formOpen} onClose={() => setFormOpen(false)} initial={null} onSave={createCustomer}
         lookups={{ types, branches: lookups.branches, staff: lookups.staff }} />
     </div>
@@ -157,3 +161,4 @@ export default function CustomersPage() {
 }
 
 const SELECT = 'rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-pink-400';
+

@@ -1,10 +1,11 @@
-import { useState, useEffect } from 'react';
+﻿import { useState, useEffect } from 'react';
 import { Plus, Search, X, AlertTriangle, Info, Inbox } from 'lucide-react';
 import useContacts from '../../hooks/useContacts.js';
 import useLookups  from '../../hooks/useLookups.js';
 import { useAuth } from '../../context/AuthContext.jsx';
 import Pagination  from '../../components/ui/Pagination.jsx';
 import ContactFormModal from './ContactFormModal.jsx';
+import ImportModal, { CONTACT_FIELDS } from '../leads/ImportModal.jsx';
 import api from '../../services/api.js';
 
 export default function ContactsPage() {
@@ -18,6 +19,7 @@ export default function ContactsPage() {
   } = useContacts();
 
   const [formOpen, setFormOpen] = useState(false);
+  const [importOpen, setImportOpen] = useState(false);
   const [editing, setEditing]   = useState(null);
   const [types, setTypes]       = useState([]);
 
@@ -42,6 +44,7 @@ export default function ContactsPage() {
           <h1 className="text-xl font-bold text-gray-900">Contacts</h1>
           <p className="text-sm text-gray-400 mt-0.5">Master list of all people</p>
         </div>
+        <button onClick={() => setImportOpen(true)} className="px-3 py-2 rounded-lg border border-gray-200 hover:bg-gray-50 text-sm text-gray-600 shrink-0">Import</button>
         <button
           onClick={() => { setEditing(null); setFormOpen(true); }}
           className="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium transition-colors shrink-0"
@@ -183,6 +186,7 @@ export default function ContactsPage() {
 
       <Pagination page={page} pages={pages} total={total} limit={limit} onPage={setPage} />
 
+      <ImportModal open={importOpen} onClose={() => setImportOpen(false)} onDone={refetch} title="Import Contacts" endpoint="/contacts/import" fields={CONTACT_FIELDS} templateName="contacts_template" />
       <ContactFormModal
         open={formOpen}
         onClose={() => { setFormOpen(false); setEditing(null); }}
@@ -206,3 +210,4 @@ function FilterSelect({ value, onChange, placeholder, options }) {
     </select>
   );
 }
+

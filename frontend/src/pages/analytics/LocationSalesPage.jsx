@@ -1,20 +1,16 @@
-import { useState, useEffect, useCallback } from 'react';
+﻿import { useState, useEffect, useCallback } from 'react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, PieChart, Pie, Cell } from 'recharts';
 import { BarChart3, PieChart as PieIcon, Download } from 'lucide-react';
 import api from '../../services/api.js';
 import { useGlobalFilter } from '../../context/GlobalFilterContext.jsx';
+import { downloadRows } from '../../utils/excel.js';
 
 const COLORS = ['#ec4899', '#be185d', '#f59e0b', '#ef4444', '#3b82f6', '#8b5cf6', '#10b981', '#64748b'];
 const inr = (n) => `₹${(n || 0).toLocaleString('en-IN', { maximumFractionDigits: 2 })}`;
 
-// Client-side CSV download of whatever rows are currently shown
+// Client-side Excel download of whatever rows are currently shown
 function downloadCsv(filename, headers, rows) {
-  const esc = (v) => `"${String(v ?? '').replace(/"/g, '""')}"`;
-  const csv = [headers, ...rows].map((r) => r.map(esc).join(',')).join('\n');
-  const url = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8;' }));
-  const a = Object.assign(document.createElement('a'), { href: url, download: filename });
-  document.body.appendChild(a); a.click(); a.remove();
-  URL.revokeObjectURL(url);
+  downloadRows(rows.map((r) => Object.fromEntries(headers.map((h, i) => [h, r[i] ?? '']))), filename.replace(/\.csv$/, '.xlsx'));
 }
 
 export default function LocationSalesPage() {
@@ -214,3 +210,4 @@ function Panel({ title, icon: Icon, onExport, children }) {
 function Empty() {
   return <p className="text-sm text-gray-400 text-center py-16">No won deals yet</p>;
 }
+

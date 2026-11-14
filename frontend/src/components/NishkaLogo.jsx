@@ -1,4 +1,4 @@
-/**
+﻿/**
  * NISHKA Momentous Jewellery — inline SVG logo
  * Matches the brand mark: flower/starburst icon in pink + wordmark
  */
@@ -34,7 +34,7 @@ export default function NishkaLogo({ size = 'md', white = false }) {
       {/* Wordmark */}
       <div className="leading-none">
         <div style={{ color: textColor, fontSize: 20, fontWeight: 800, letterSpacing: '0.08em', fontFamily: 'Inter, sans-serif' }}>
-          NiŜHKA
+          NISHKA
         </div>
         <div style={{ color: subColor, fontSize: 8, fontWeight: 600, letterSpacing: '0.3em', textTransform: 'uppercase', marginTop: 1 }}>
           Momentous Jewellery
@@ -43,3 +43,4 @@ export default function NishkaLogo({ size = 'md', white = false }) {
     </div>
   );
 }
+

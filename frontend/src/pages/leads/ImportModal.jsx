@@ -1,20 +1,55 @@
-import { useState, useRef } from 'react';
+﻿import { useState, useRef } from 'react';
 import ModalForm  from '../../components/ui/ModalForm.jsx';
 import Button     from '../../components/ui/Button.jsx';
 import { Upload, AlertCircle, CheckCircle2, Download } from 'lucide-react';
 import api from '../../services/api.js';
+import { downloadTemplate } from '../../utils/excel.js';
 
-const CRM_FIELDS = [
-  { key: 'firstName',  label: 'First Name *' },
-  { key: 'lastName',   label: 'Last Name *' },
-  { key: 'phone',      label: 'Phone' },
-  { key: 'email',      label: 'Email' },
-  { key: 'source',     label: 'Lead Source' },
-  { key: 'branch',     label: 'Branch' },
-  { key: 'assignedTo', label: 'Assigned To' },
+export const LEAD_FIELDS = [
+  { key: 'name',       label: 'Full Name',  aliases: ['customername', 'fullname', 'name', 'customer'] },
+  { key: 'firstName',  label: 'First Name', aliases: ['firstname', 'fname'] },
+  { key: 'lastName',   label: 'Last Name',  aliases: ['lastname', 'lname', 'surname'] },
+  { key: 'phone',      label: 'Phone *',    aliases: ['phone', 'mobile', 'mobileno', 'contact', 'contactno', 'phoneno'] },
+  { key: 'altPhone',   label: 'Alt Phone',  aliases: ['altphone', 'alternate', 'whatsapp', 'phone2'] },
+  { key: 'email',      label: 'Email',      aliases: ['email', 'emailid'] },
+  { key: 'source',     label: 'Lead Source', aliases: ['source', 'leadsource'] },
+  { key: 'channel',    label: 'Channel (INSTORE/OUTDOOR)', aliases: ['channel'] },
+  { key: 'branch',     label: 'Branch',     aliases: ['branch', 'store', 'showroom'] },
+  { key: 'assignedTo', label: 'Assigned To', aliases: ['assignedto', 'staff', 'salesman', 'bde', 'executive'] },
+  { key: 'area',       label: 'Area',       aliases: ['area', 'location', 'city'] },
+  { key: 'stage',      label: 'Stage',      aliases: ['stage'] },
+  { key: 'status',     label: 'Status',     aliases: ['status', 'leadstatus'] },
+  { key: 'priority',   label: 'Priority',   aliases: ['priority'] },
+  { key: 'dueDate',    label: 'Follow-up Date', aliases: ['duedate', 'followup', 'followupdate', 'nextfollowup'] },
+  { key: 'marriageDate', label: 'Marriage Date', aliases: ['marriagedate', 'weddingdate'] },
+  { key: 'notes',      label: 'Notes',      aliases: ['notes', 'remarks', 'remark', 'comment'] },
 ];
 
-export default function ImportModal({ open, onClose, onDone }) {
+export const CONTACT_FIELDS = [
+  { key: 'name',       label: 'Full Name',  aliases: ['customername', 'fullname', 'name', 'customer'] },
+  { key: 'firstName',  label: 'First Name', aliases: ['firstname', 'fname'] },
+  { key: 'lastName',   label: 'Last Name',  aliases: ['lastname', 'lname', 'surname'] },
+  { key: 'phone',      label: 'Phone *',    aliases: ['phone', 'mobile', 'mobileno', 'contact', 'contactno', 'phoneno'] },
+  { key: 'email',      label: 'Email',      aliases: ['email', 'emailid'] },
+  { key: 'type',       label: 'Customer Type', aliases: ['type', 'customertype', 'category'] },
+  { key: 'branch',     label: 'Branch',     aliases: ['branch', 'store', 'showroom'] },
+  { key: 'assignedTo', label: 'Assigned To', aliases: ['assignedto', 'staff', 'salesman', 'executive'] },
+  { key: 'city',       label: 'City',       aliases: ['city', 'town'] },
+  { key: 'state',      label: 'State',      aliases: ['state'] },
+  { key: 'pincode',    label: 'Pincode',    aliases: ['pincode', 'pin', 'zip', 'postalcode'] },
+  { key: 'dateOfBirth', label: 'Date of Birth', aliases: ['dob', 'dateofbirth', 'birthdate', 'birthday'] },
+  { key: 'anniversaryDate', label: 'Anniversary Date', aliases: ['anniversary', 'anniversarydate', 'marriagedate'] },
+];
+
+export const AREA_FIELDS = [
+  { key: 'name',      label: 'Area Name *', aliases: ['area', 'areaname', 'name'] },
+  { key: 'branch',    label: 'Branch',      aliases: ['branch', 'branchname'] },
+  { key: 'pincode',   label: 'Pincode',     aliases: ['pincode', 'pin', 'zip'] },
+  { key: 'locations', label: 'Locations (comma separated)', aliases: ['locations', 'location'] },
+];
+
+export const NAME_FIELDS = [{ key: 'name', label: 'Name *', aliases: ['name'] }];
+export default function ImportModal({ open, onClose, onDone, title: titleProp = 'Import Leads', endpoint = '/leads/import', fields = LEAD_FIELDS, templateName = 'leads_template' }) {
   const [step, setStep]       = useState('upload'); // upload | map | result
   const [file, setFile]       = useState(null);
   const [headers, setHeaders] = useState([]);
@@ -45,10 +80,9 @@ export default function ImportModal({ open, onClose, onDone }) {
 
         // Auto-map: match header names to CRM fields (fuzzy)
         const auto = {};
-        for (const { key } of CRM_FIELDS) {
-          const found = hdrs.find((h) =>
-            h.toLowerCase().replace(/[\s_-]/g, '').includes(key.toLowerCase().replace(/[\s_-]/g, ''))
-          );
+        for (const { key, aliases = [] } of fields) {
+          const norm = (s) => String(s).toLowerCase().replace(/[^a-z0-9]/g, '');
+          const found = hdrs.find((h) => norm(h) === norm(key) || aliases.includes(norm(h)));
           if (found) auto[key] = found;
         }
         setMapping(auto);
@@ -64,7 +98,7 @@ export default function ImportModal({ open, onClose, onDone }) {
       const fd = new FormData();
       fd.append('file', file);
       fd.append('mapping', JSON.stringify(mapping));
-      const res = await api.post('/leads/import', fd, {
+      const res = await api.post(endpoint, fd, {
         headers: { 'Content-Type': 'multipart/form-data' },
         timeout: 120000, // 2 min for large files
       });
@@ -84,7 +118,7 @@ export default function ImportModal({ open, onClose, onDone }) {
     link.click();
   };
 
-  const title = { upload: 'Import Leads', map: 'Map Columns', result: 'Import Result' }[step];
+  const title = { upload: titleProp, map: 'Map Columns', result: 'Import Result' }[step];
 
   return (
     <ModalForm open={open} onClose={() => { reset(); onClose(); }} title={title} size="lg"
@@ -99,12 +133,13 @@ export default function ImportModal({ open, onClose, onDone }) {
         <div>
           <div
             onClick={() => fileRef.current.click()}
-            className="border-2 border-dashed border-gray-300 rounded-xl p-10 text-center cursor-pointer hover:border-indigo-400 hover:bg-indigo-50 transition-colors"
+            className="border-2 border-dashed border-gray-300 rounded-xl p-10 text-center cursor-pointer hover:border-pink-400 hover:bg-pink-50 transition-colors"
           >
             <Upload className="w-8 h-8 text-gray-400 mx-auto mb-2" />
             <p className="text-sm text-gray-600">Click to upload or drag and drop</p>
             <p className="text-xs text-gray-400 mt-1">.xlsx or .csv — up to 20 MB (5,000+ rows supported)</p>
           </div>
+          <button type="button" onClick={() => downloadTemplate(fields, templateName)} className="mt-3 text-sm text-pink-600 hover:underline inline-flex items-center gap-1"><Download className="w-4 h-4" /> Download blank template (.xlsx)</button>
           <input ref={fileRef} type="file" accept=".xlsx,.csv" className="hidden" onChange={handleFile} />
           {error && <p className="text-red-500 text-sm mt-3">{error}</p>}
         </div>
@@ -116,13 +151,13 @@ export default function ImportModal({ open, onClose, onDone }) {
           <p className="text-sm text-gray-500 mb-3">
             File: <strong>{file?.name}</strong>. Map each CRM field to a column in your file.
           </p>
-          {CRM_FIELDS.map(({ key, label }) => (
+          {fields.map(({ key, label }) => (
             <div key={key} className="flex items-center gap-4">
               <span className="w-36 text-sm font-medium text-gray-700 shrink-0">{label}</span>
               <select
                 value={mapping[key] || ''}
                 onChange={(e) => setMapping((m) => ({ ...m, [key]: e.target.value }))}
-                className="flex-1 rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                className="flex-1 rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-pink-400"
               >
                 <option value="">— Skip —</option>
                 {headers.map((h) => <option key={h} value={h}>{h}</option>)}
@@ -172,3 +207,5 @@ function StatBox({ icon: Icon, color, label, value }) {
     </div>
   );
 }
+
+

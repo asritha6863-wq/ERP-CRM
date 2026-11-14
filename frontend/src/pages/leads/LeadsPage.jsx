@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useMemo } from 'react';
+﻿import { useState, useEffect, useRef, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Plus, Upload, Download, Filter, CheckSquare, Users, Maximize2,
@@ -9,6 +9,7 @@ import useLeads    from '../../hooks/useLeads.js';
 import useLookups  from '../../hooks/useLookups.js';
 import { useAuth } from '../../context/AuthContext.jsx';
 import api         from '../../services/api.js';
+import { downloadCsvResponseAsExcel } from '../../utils/excel.js';
 import Pagination  from '../../components/ui/Pagination.jsx';
 import FilterBar   from '../../components/ui/FilterBar.jsx';
 import Button      from '../../components/ui/Button.jsx';
@@ -139,10 +140,7 @@ export default function LeadsPage() {
       if (search) params.name = search;
       ['sourceId', 'branchId', 'assignedToId'].forEach((k) => { if (filters[k]) params[k] = filters[k]; });
       const res = await api.get('/reports/leads/export', { params, responseType: 'blob' });
-      const url = URL.createObjectURL(res.data);
-      const a = Object.assign(document.createElement('a'), { href: url, download: 'leads.csv' });
-      document.body.appendChild(a); a.click(); a.remove();
-      URL.revokeObjectURL(url);
+      await downloadCsvResponseAsExcel(res.data, 'leads.xlsx');
     } catch { setNotice('Export failed. Please try again.'); }
     finally { setExporting(false); }
   };
@@ -428,3 +426,4 @@ function FilterSelect({ label, value, onChange, options }) {
     </select>
   );
 }
+

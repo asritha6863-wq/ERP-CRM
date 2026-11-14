@@ -16,7 +16,7 @@ function buildWhere(user, q) {
   const sc = scope(user);
   const parts = [
     { isActive: true, ...sc },
-    { anniversaryDate: { not: null } },
+    { OR: [{ anniversaryDate: { not: null } }] },
   ];
   if (q.marriageFrom || q.marriageTo) {
     const r = {};
