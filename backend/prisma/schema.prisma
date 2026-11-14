@@ -96,6 +96,7 @@ model User {
   feedbackCalls    FeedbackRequest[] @relation("FeedbackRequestCompleter")
   advisedAppts     Appointment[]     @relation("AppointmentAdvisor")
   createdAppts     Appointment[]     @relation("AppointmentCreator")
+  interactionLogs  InteractionLog[]  @relation("InteractionLogStaff")
   assignedTasks   Task[]             @relation("TaskAssignee")
   createdTasks    Task[]             @relation("TaskCreator")
   reminders        Reminder[] @relation("ReminderAssignee")
@@ -244,6 +245,7 @@ model Contact {
   visits    Visit[]
   tasks     Task[]
   appointments Appointment[]
+  interactionLogs InteractionLog[]
 
   dateOfBirth     DateTime?
   anniversaryDate DateTime?
@@ -266,6 +268,7 @@ model Lead {
   leadNo        Int         @default(autoincrement()) @unique
   feedbackRequests FeedbackRequest[]
   tasks            Task[]
+  interactionLogs  InteractionLog[]
   channel       LeadChannel @default(OUTDOOR)
   firstName     String
   lastName      String
@@ -460,6 +463,36 @@ model FeedbackRequest {
 
   @@index([status, createdAt])
   @@index([leadId])
+}
+
+// ── Interaction Logs ─────────────────────────────────────
+
+enum InteractionChannel {
+  CALL
+  WHATSAPP
+  EMAIL
+  SMS
+  IN_PERSON
+  OTHER
+}
+
+model InteractionLog {
+  id          String             @id @default(cuid())
+  contactId   String?
+  contact     Contact?           @relation(fields: [contactId], references: [id])
+  leadId      String?
+  lead        Lead?              @relation(fields: [leadId], references: [id])
+  channel     InteractionChannel @default(CALL)
+  notes       String?
+  loggedById  String?
+  loggedBy    User?              @relation("InteractionLogStaff", fields: [loggedById], references: [id])
+  loggedAt    DateTime           @default(now())
+  createdAt   DateTime           @default(now())
+
+  @@index([contactId])
+  @@index([leadId])
+  @@index([loggedAt])
+  @@index([channel])
 }
 
 // ── Appointments ─────────────────────────────────────────
