@@ -53,6 +53,7 @@ import IncentiveReportPage  from '../pages/reports/IncentiveReportPage.jsx';
 import CustomerFeedPage     from '../pages/activity/CustomerFeedPage.jsx';
 import TasksPage            from '../pages/activity/TasksPage.jsx';
 import VisitManagementPage  from '../pages/visits/VisitManagementPage.jsx';
+import VisitReportPage      from '../pages/visits/VisitReportPage.jsx';
 import CustomerProfilePage  from '../pages/customers/CustomerProfilePage.jsx';
 
 export default function AppRoutes() {
@@ -97,7 +98,7 @@ export default function AppRoutes() {
           <Route path="/activity/tasks"  element={<TasksPage />} />
           <Route path="/visits"                   element={<ComingSoon name="Visits" />} />
           <Route path="/visits/management"        element={<VisitManagementPage />} />
-          <Route path="/visits/report"            element={<ComingSoon name="Visit Report" />} />
+          <Route path="/visits/report"            element={<VisitReportPage />} />
           <Route path="/appointments"             element={<ComingSoon name="Appointments" />} />
           <Route path="/appointments/desk"        element={<ComingSoon name="Appointment Desk" />} />
 

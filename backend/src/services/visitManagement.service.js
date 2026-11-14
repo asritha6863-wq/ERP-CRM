@@ -11,7 +11,7 @@ const toDay = (s) => (typeof s === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(s)
 const INCLUDE = {
   user:    { select: { id: true, name: true } },
   contact: { select: { id: true, firstName: true, lastName: true, phone: true, branchId: true } },
-  lead:    { select: { id: true, leadNo: true, firstName: true, lastName: true, phone: true } },
+  lead:    { select: { id: true, leadNo: true, firstName: true, lastName: true, phone: true, isWon: true, isLost: true } },
 };
 
 function scopeParts(user, q = {}) {
@@ -43,6 +43,11 @@ function scopeParts(user, q = {}) {
 }
 
 function toRow(v) {
+  // displayStatus maps the lead outcome to report labels matching the screenshot
+  let displayStatus = v.status;
+  if (v.lead?.isWon)  displayStatus = 'CONVERTED';
+  else if (v.lead?.isLost) displayStatus = 'LOST';
+  else if (v.status === 'COMPLETED') displayStatus = 'CONVERTED';
   return {
     id:             v.id,
     date:           v.date.toISOString().slice(0, 10),
@@ -63,6 +68,7 @@ function toRow(v) {
     phone:          v.contact?.phone || v.newVisitorPhone || '',
     leadNo:         v.lead?.leadNo ?? null,
     leadId:         v.lead?.id  || '',
+    displayStatus,
   };
 }
 
@@ -80,6 +86,66 @@ export async function listVisits(user, q) {
   // Distinct counters for the filter dropdown
   const counters = await prisma.visit.findMany({ where: { counter: { not: null } }, distinct: ['counter'], select: { counter: true } });
   return { data: items.map(toRow), total, page, limit: take, pages: Math.ceil(total / take), counters: counters.map((c) => c.counter) };
+}
+
+export async function visitSummary(user, q) {
+  const parts = scopeParts(user, { ...q, status: undefined });   // summary ignores status filter
+  const where = parts.length ? { AND: parts } : {};
+  const inScope = { where };
+
+  const [total, converted, lost, contacts, newVisitors] = await Promise.all([
+    prisma.visit.count(inScope),
+    // Converted = completed visits or whose lead is Won
+    prisma.visit.count({ where: { AND: [...(parts.length ? [{ AND: parts }] : []), { OR: [{ status: 'COMPLETED' }, { lead: { isWon: true } }] }] } }),
+    // Lost = visits whose lead is Lost
+    prisma.visit.count({ where: { AND: [...(parts.length ? [{ AND: parts }] : []), { lead: { isLost: true } }] } }),
+    // Unique customers (contacts)
+    prisma.visit.groupBy({ by: ['contactId'], where: { AND: [...(parts.length ? [{ AND: parts }] : []), { contactId: { not: null } }] }, _count: { _all: true } }),
+    // New visitors (no contact on record)
+    prisma.visit.count({ where: { AND: [...(parts.length ? [{ AND: parts }] : []), { contactId: null }] } }),
+  ]);
+  return { total, uniqueCustomers: contacts.length, newVisitors, converted, lost };
+}
+
+// CSV export — streams all matching rows
+const CSV_COLS = [
+  ['date',          'Visit Date'],
+  ['customer',      'Customer / Visitor'],
+  ['phone',         'Phone'],
+  ['staff',         'Staff'],
+  ['counter',       'Counter'],
+  ['category',      'Requirement Category'],
+  ['purpose',       'Purpose / Details'],
+  ['visitLocation', 'Visit Location'],
+  ['displayStatus', 'Status'],
+  ['internalNotes', 'Internal Notes'],
+];
+
+export async function streamVisitCsv(user, q, res) {
+  const parts = scopeParts(user, q);
+  const where = parts.length ? { AND: parts } : {};
+  const esc = (v) => `"${String(v ?? '').replace(/"/g, '""')}"`;
+
+  res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+  res.setHeader('Content-Disposition', 'attachment; filename="visit-report.csv"');
+  res.write('\ufeff' + CSV_COLS.map(([, h]) => esc(h)).join(',') + '\n');
+
+  let cursor; let written = 0;
+  while (written < 50_000) {
+    const batch = await prisma.visit.findMany({
+      where, take: 1000, orderBy: { id: 'asc' }, include: INCLUDE,
+      ...(cursor ? { cursor: { id: cursor }, skip: 1 } : {}),
+    });
+    if (!batch.length) break;
+    for (const v of batch) {
+      const row = toRow(v);
+      res.write(CSV_COLS.map(([k]) => esc(row[k])).join(',') + '\n');
+    }
+    written += batch.length;
+    cursor = batch[batch.length - 1].id;
+    if (batch.length < 1000) break;
+  }
+  res.end();
 }
 
 export async function createVisit(user, data) {
