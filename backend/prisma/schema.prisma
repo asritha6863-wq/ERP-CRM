@@ -497,6 +497,14 @@ model Task {
 
 // ── Lead-Linked Entities ────────────────────────────────
 
+// ── Visit status (store footfall) ───────────────────────
+
+enum VisitStatus {
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
 model Visit {
   id        String    @id @default(cuid())
   leadId    String?
@@ -506,6 +514,14 @@ model Visit {
   userId    String?
   user      User?     @relation(fields: [userId], references: [id])
   date      DateTime
+  status          VisitStatus @default(IN_PROGRESS)
+  counter         String?
+  category        String?
+  purpose         String?
+  visitLocation   String?
+  internalNotes   String?
+  newVisitorName  String?
+  newVisitorPhone String?
   @@index([contactId])
   @@index([date])
   notes     String?
