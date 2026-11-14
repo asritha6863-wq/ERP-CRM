@@ -20,6 +20,7 @@ import customerHubRoutes from './routes/customerHub.routes.js';
 import feedbackRequestsRoutes from './routes/feedbackRequests.routes.js';
 import tasksRoutes from './routes/tasks.routes.js';
 import visitManagementRoutes from './routes/visitManagement.routes.js';
+import appointmentsRoutes    from './routes/appointments.routes.js';
 import { errorHandler } from './middleware/error.middleware.js';
 
 dotenv.config();
@@ -59,6 +60,7 @@ app.use('/api/customer-hub', customerHubRoutes);
 app.use('/api/feedback-requests', feedbackRequestsRoutes);
 app.use('/api/tasks', tasksRoutes);
 app.use('/api/visits', visitManagementRoutes);
+app.use('/api/appointments', appointmentsRoutes);
 
 // 404 handler
 app.use((req, res) => {

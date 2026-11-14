@@ -94,6 +94,8 @@ model User {
   createdLeads     Lead[]     @relation("LeadCreator")
   feedbackServed   Feedback[] @relation("FeedbackSalesman")
   feedbackCalls    FeedbackRequest[] @relation("FeedbackRequestCompleter")
+  advisedAppts     Appointment[]     @relation("AppointmentAdvisor")
+  createdAppts     Appointment[]     @relation("AppointmentCreator")
   assignedTasks   Task[]             @relation("TaskAssignee")
   createdTasks    Task[]             @relation("TaskCreator")
   reminders        Reminder[] @relation("ReminderAssignee")
@@ -117,6 +119,7 @@ model Branch {
   customers Customer[]
   contacts  Contact[]
   areas     Area[]
+  appointments Appointment[]
 
   @@unique([name, companyId])
 }
@@ -240,6 +243,7 @@ model Contact {
   reminders Reminder[]
   visits    Visit[]
   tasks     Task[]
+  appointments Appointment[]
 
   dateOfBirth     DateTime?
   anniversaryDate DateTime?
@@ -456,6 +460,41 @@ model FeedbackRequest {
 
   @@index([status, createdAt])
   @@index([leadId])
+}
+
+// ── Appointments ─────────────────────────────────────────
+
+enum AppointmentStatus {
+  SCHEDULED
+  CONFIRMED
+  COMPLETED
+  CANCELLED
+  NO_SHOW
+}
+
+model Appointment {
+  id               String            @id @default(cuid())
+  contactId        String?
+  contact          Contact?          @relation(fields: [contactId], references: [id])
+  branchId         String?
+  branch           Branch?           @relation(fields: [branchId], references: [id])
+  advisorId        String?
+  advisor          User?             @relation("AppointmentAdvisor", fields: [advisorId], references: [id])
+  createdById      String?
+  createdBy        User?             @relation("AppointmentCreator", fields: [createdById], references: [id])
+  appointmentType  String?
+  appointmentDate  DateTime
+  notes            String?
+  status           AppointmentStatus @default(SCHEDULED)
+  newCustomerName  String?
+  newCustomerPhone String?
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+
+  @@index([branchId])
+  @@index([advisorId])
+  @@index([appointmentDate])
+  @@index([status])
 }
 
 // ── Tasks ────────────────────────────────────────────────
