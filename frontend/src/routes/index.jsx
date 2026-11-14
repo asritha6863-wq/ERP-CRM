@@ -51,6 +51,7 @@ import BdeReportPage        from '../pages/reports/BdeReportPage.jsx';
 import FeedbackReportPage   from '../pages/reports/FeedbackReportPage.jsx';
 import IncentiveReportPage  from '../pages/reports/IncentiveReportPage.jsx';
 import CustomerFeedPage     from '../pages/activity/CustomerFeedPage.jsx';
+import TasksPage            from '../pages/activity/TasksPage.jsx';
 import CustomerProfilePage  from '../pages/customers/CustomerProfilePage.jsx';
 
 export default function AppRoutes() {
@@ -92,7 +93,7 @@ export default function AppRoutes() {
           <Route path="/reports/incentive"           element={<IncentiveReportPage />} />
           <Route path="/activity"        element={<ComingSoon name="Activity" />} />
           <Route path="/activity/feed"   element={<CustomerFeedPage />} />
-          <Route path="/activity/tasks"  element={<ComingSoon name="Tasks" />} />
+          <Route path="/activity/tasks"  element={<TasksPage />} />
           <Route path="/visits"                   element={<ComingSoon name="Visits" />} />
           <Route path="/visits/management"        element={<ComingSoon name="Visit Management" />} />
           <Route path="/visits/report"            element={<ComingSoon name="Visit Report" />} />

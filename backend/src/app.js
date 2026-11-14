@@ -18,6 +18,7 @@ import reportsRoutes from './routes/reports.routes.js';
 import feedbackRoutes from './routes/feedback.routes.js';
 import customerHubRoutes from './routes/customerHub.routes.js';
 import feedbackRequestsRoutes from './routes/feedbackRequests.routes.js';
+import tasksRoutes from './routes/tasks.routes.js';
 import { errorHandler } from './middleware/error.middleware.js';
 
 dotenv.config();
@@ -55,6 +56,7 @@ app.use('/api/reports', reportsRoutes);
 app.use('/api/feedback', feedbackRoutes);
 app.use('/api/customer-hub', customerHubRoutes);
 app.use('/api/feedback-requests', feedbackRequestsRoutes);
+app.use('/api/tasks', tasksRoutes);
 
 // 404 handler
 app.use((req, res) => {

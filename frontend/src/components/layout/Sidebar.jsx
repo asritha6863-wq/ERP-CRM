@@ -32,6 +32,8 @@ const NAV = [
       { id: 'contacts',      label: 'Contacts',       path: '/contacts',      icon: BookUser     },
     ],
   },
+  // ── Customer — top-level module ───────────────────────
+  { id: 'customers', label: 'Customers', path: '/customers', icon: UserCheck, roles: ALL_ROLES },
   {
     id: 'masters',
     label: 'Masters',
@@ -46,7 +48,6 @@ const NAV = [
       { id: 'lead-status',     label: 'Lead Status Master', path: '/masters/lead-statuses',icon: Settings2 },
     ],
   },
-  { id: 'customers', label: 'Customers', path: '/customers', icon: UserCheck, roles: ALL_ROLES },
   {
     id: 'customer-management',
     label: 'Customer Management',

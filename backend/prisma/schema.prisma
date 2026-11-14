@@ -94,6 +94,8 @@ model User {
   createdLeads     Lead[]     @relation("LeadCreator")
   feedbackServed   Feedback[] @relation("FeedbackSalesman")
   feedbackCalls    FeedbackRequest[] @relation("FeedbackRequestCompleter")
+  assignedTasks   Task[]             @relation("TaskAssignee")
+  createdTasks    Task[]             @relation("TaskCreator")
   reminders        Reminder[] @relation("ReminderAssignee")
   createdReminders Reminder[] @relation("ReminderCreator")
   campaigns        Campaign[]
@@ -237,6 +239,7 @@ model Contact {
   deals     Deal[]
   reminders Reminder[]
   visits    Visit[]
+  tasks     Task[]
 
   dateOfBirth     DateTime?
   anniversaryDate DateTime?
@@ -258,6 +261,7 @@ model Lead {
   contact       Contact?    @relation(fields: [contactId], references: [id])
   leadNo        Int         @default(autoincrement()) @unique
   feedbackRequests FeedbackRequest[]
+  tasks            Task[]
   channel       LeadChannel @default(OUTDOOR)
   firstName     String
   lastName      String
@@ -356,6 +360,7 @@ model Deal {
   @@index([stageId])
   @@index([ownerId])
   @@index([expectedCloseDate])
+  taskRefs Task[]
 }
 
 // ── Reminders ───────────────────────────────────────────
@@ -453,6 +458,43 @@ model FeedbackRequest {
   @@index([leadId])
 }
 
+// ── Tasks ────────────────────────────────────────────────
+
+enum TaskStatus {
+  PENDING
+  IN_PROGRESS
+  DONE
+  CANCELLED
+}
+
+model Task {
+  id            String      @id @default(cuid())
+  title         String
+  description   String?
+  dueDate       DateTime?
+  reminderDate  DateTime?
+  priority      LeadPriority @default(MEDIUM)
+  status        TaskStatus   @default(PENDING)
+  leadId        String?
+  lead          Lead?        @relation(fields: [leadId], references: [id])
+  dealId        String?
+  deal          Deal?        @relation(fields: [dealId], references: [id])
+  contactId     String?
+  contact       Contact?     @relation(fields: [contactId], references: [id])
+  visitId       String?
+  visit         Visit?       @relation(fields: [visitId], references: [id])
+  assignedToId  String?
+  assignedTo    User?        @relation("TaskAssignee", fields: [assignedToId], references: [id])
+  createdById   String?
+  createdBy     User?        @relation("TaskCreator", fields: [createdById], references: [id])
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+
+  @@index([assignedToId])
+  @@index([dueDate])
+  @@index([status])
+}
+
 // ── Lead-Linked Entities ────────────────────────────────
 
 model Visit {
@@ -468,6 +510,7 @@ model Visit {
   @@index([date])
   notes     String?
   createdAt DateTime  @default(now())
+  taskRefs  Task[]
 }
 
 model Activity {
