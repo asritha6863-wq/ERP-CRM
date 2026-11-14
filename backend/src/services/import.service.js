@@ -1,4 +1,4 @@
-import prisma from '../utils/prisma.js';
+﻿import prisma from '../utils/prisma.js';
 
 const CHUNK = 500;
 
@@ -255,8 +255,8 @@ export async function importMaster(entity, rows, mapping) {
       const b = str(row.branch);
       if (b) {
         const br = lookup(branchMap, b);
-        if (!br) { results.errors.push({ row: rowNum, error: `Branch "${b}" not found` }); return; }
-        rec.branchId = br.id;
+        if (br) rec.branchId = br.id;
+        else results.errors.push({ row: rowNum, error: `Imported without branch: "${b}" not found` });
       }
       rec.pincode = str(row.pincode) || null;
       rec.locations = str(row.locations) || null;
@@ -271,3 +271,4 @@ export async function importMaster(entity, rows, mapping) {
   });
   return results;
 }
+
