@@ -36,6 +36,7 @@ const NAV = [
       { id: 'lead-source',     label: 'Lead Source Master', path: '/masters/lead-sources', icon: Settings2 },
       { id: 'channel',         label: 'Channel Master',     path: '/masters/channels',     icon: Settings2 },
       { id: 'lead-status',     label: 'Lead Status Master', path: '/masters/lead-statuses',icon: Settings2 },
+      { id: 'users',           label: 'User Management',    path: '/masters/users',        icon: UserCheck },
     ],
   },
 

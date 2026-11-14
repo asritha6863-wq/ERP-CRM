@@ -35,10 +35,10 @@ function buildWhere(user, q) {
   return { AND: parts };
 }
 
-function computeStatus(marriageDate, attendeeId) {
+function computeStatus(anniversaryDate, attendeeId) {
   if (!attendeeId) return 'PENDING';
   const today = new Date(); today.setUTCHours(0, 0, 0, 0);
-  if (marriageDate && new Date(marriageDate) < today) return 'COMPLETED';
+  if (anniversaryDate && new Date(anniversaryDate) < today) return 'COMPLETED';
   return 'ASSIGNED';
 }
 
@@ -46,6 +46,7 @@ function toRow(c) {
   const deal = c.deals?.[0];
   const a    = c.bridalAttendee;
   const status = computeStatus(c.anniversaryDate, a?.userId);
+  return {
     id:           c.id,
     customer:     `${c.firstName} ${c.lastName}`.trim(),
     phone:        c.phone || '',
@@ -60,7 +61,7 @@ function toRow(c) {
 }
 
 const INCLUDE = {
-  branch:        { select: { name: true } },
+  branch:         { select: { name: true } },
   bridalAttendee: { include: { user: { select: { id: true, name: true } } } },
   deals: {
     where:   { stage: wonStage },
@@ -76,7 +77,11 @@ export async function listMarriagePurchases(user, q) {
   const page  = Math.max(1, +q.page || 1);
 
   const [contacts, total] = await Promise.all([
-    prisma.contact.findMany({ where, skip: (page - 1) * take, take, orderBy: [{ anniversaryDate: 'asc' }, { firstName: 'asc' }], include: INCLUDE }),
+    prisma.contact.findMany({
+      where, skip: (page - 1) * take, take,
+      orderBy: [{ anniversaryDate: 'asc' }, { firstName: 'asc' }],
+      include: INCLUDE,
+    }),
     prisma.contact.count({ where }),
   ]);
 
@@ -98,7 +103,9 @@ export async function assignAttendee(user, contactId, data) {
   const { userId } = data;
   if (!userId) throw { statusCode: 400, message: 'userId is required' };
 
-  const contact = await prisma.contact.findFirst({ where: { AND: [{ id: contactId }, Object.keys(scope(user)).length ? scope(user) : {}] } });
+  const sc = scope(user);
+  const where = Object.keys(sc).length ? { AND: [{ id: contactId }, sc] } : { id: contactId };
+  const contact = await prisma.contact.findFirst({ where });
   if (!contact) throw { statusCode: 404, message: 'Contact not found' };
 
   const result = await prisma.bridalAttendee.upsert({
