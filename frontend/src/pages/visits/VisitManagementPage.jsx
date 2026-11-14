@@ -174,7 +174,7 @@ export default function VisitManagementPage() {
             </thead>
             <tbody>
               {result.data.map((v) => {
-                const st = STATUS_STYLE[v.status];
+                const st = STATUS_STYLE[v.status] || STATUS_STYLE.IN_PROGRESS;
                 return (
                   <tr key={v.id} className="border-b border-gray-50 hover:bg-gray-50">
                     <td className="px-4 py-3"><p className="font-semibold text-gray-900">{v.customer}</p><p className="text-xs text-gray-400">{v.phone}</p></td>
@@ -203,7 +203,7 @@ export default function VisitManagementPage() {
 }
 
 function VisitCard({ visit, onEdit, onStatusChange }) {
-  const st = STATUS_STYLE[visit.status];
+  const st = STATUS_STYLE[visit.status] || STATUS_STYLE.IN_PROGRESS;
   const Icon = st.icon;
   return (
     <div className="bg-white border border-gray-200 rounded-2xl p-4 flex flex-col gap-3">
