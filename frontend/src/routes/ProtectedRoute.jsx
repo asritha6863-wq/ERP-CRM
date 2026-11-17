@@ -28,7 +28,9 @@ export default function ProtectedRoute() {
 export function RoleGuard({ roles, children }) {
   const { user } = useAuth();
 
-  if (!user || !roles.includes(user.role)) {
+  const { pathname } = useLocation();
+  const grant = user && pathname.startsWith('/masters') && canAccessPath(user, pathname);
+  if (!user || !(roles.includes(user.role) || grant)) {
     return <Navigate to="/dashboard" replace />;
   }
 

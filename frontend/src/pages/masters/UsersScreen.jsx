@@ -8,7 +8,7 @@ import Button from '../../components/ui/Button.jsx';
 import ModalForm from '../../components/ui/ModalForm.jsx';
 import Badge from '../../components/ui/Badge.jsx';
 import api from '../../services/api.js';
-import { ACCESS_MENU, ALL_ACCESS_IDS } from '../../utils/accessMenu.js';
+import { ACCESS_MENU, ALL_ACCESS_IDS, MASTER_IDS } from '../../utils/accessMenu.js';
 
 const ROLES = ['ADMIN', 'MANAGER', 'SALES'];
 const ROLE_COLORS = {
@@ -190,7 +190,7 @@ export default function UsersScreen() {
             <div className="border border-gray-200 rounded-lg p-3">
               <label className="flex items-center gap-2 text-sm font-medium text-gray-700">
                 <input type="checkbox" checked={form.customAccess}
-                  onChange={(e) => setForm((f) => ({ ...f, customAccess: e.target.checked, permissions: e.target.checked && !f.permissions.length ? [...ALL_ACCESS_IDS] : f.permissions }))} />
+                  onChange={(e) => setForm((f) => ({ ...f, customAccess: e.target.checked, permissions: e.target.checked && !f.permissions.length ? ALL_ACCESS_IDS.filter((i) => !MASTER_IDS.includes(i)) : f.permissions }))} />
                 Restrict access (choose sections this user can open)
               </label>
               {!form.customAccess && <p className="text-xs text-gray-400 mt-1">Off: user sees every section allowed for the role.</p>}

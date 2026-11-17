@@ -1,5 +1,5 @@
-﻿// Menu catalogue used for per-user access. Ids match Sidebar item ids.
-// Masters are always ADMIN-only and are not listed here.
+// Menu catalogue used for per-user access. Ids match Sidebar item ids.
+// Masters need an explicit grant (ADMIN has all). User Management stays ADMIN-only.
 export const ACCESS_MENU = [
   { id: 'customers', label: 'Customers', path: '/customers' },
   { id: 'sales-pipeline', label: 'Sales Pipeline', children: [
@@ -42,6 +42,14 @@ export const ACCESS_MENU = [
   { id: 'appointments', label: 'Appointments', children: [
     { id: 'appointment-desk', label: 'Appointment Desk', path: '/appointments/desk' },
   ] },
+  { id: 'masters', label: 'Masters', children: [
+    { id: 'stage-master', label: 'Stage Master', path: '/masters/stage' },
+    { id: 'area-master', label: 'Area Master', path: '/masters/areas' },
+    { id: 'location-master', label: 'Location Master', path: '/masters/locations' },
+    { id: 'lead-source', label: 'Lead Source Master', path: '/masters/lead-sources' },
+    { id: 'channel', label: 'Channel Master', path: '/masters/channels' },
+    { id: 'lead-status', label: 'Lead Status Master', path: '/masters/lead-statuses' },
+  ] },
 ];
 
 // Flat list of every grantable id (leaf ids + standalone items)
@@ -49,16 +57,19 @@ export const ALL_ACCESS_IDS = ACCESS_MENU.flatMap((m) => (m.children ? m.childre
 const LEAVES = ACCESS_MENU.flatMap((m) => (m.children ? m.children : [m]));
 
 // ADMIN: everything. Others: permissions array if set, otherwise everything (role default).
+export const MASTER_IDS = ['stage-master', 'area-master', 'location-master', 'lead-source', 'channel', 'lead-status'];
+
 export function canAccessId(user, id) {
   if (!user) return false;
   if (user.role === 'ADMIN' || id === 'dashboard') return true;
-  if (!Array.isArray(user.permissions)) return true;
+  if (!Array.isArray(user.permissions)) return !MASTER_IDS.includes(id);
   return user.permissions.includes(id);
 }
 
 export function canAccessPath(user, pathname) {
   const leaf = LEAVES.find((l) => pathname === l.path || pathname.startsWith(l.path + '/'));
-  return leaf ? canAccessId(user, leaf.id) : true;
+  if (leaf) return canAccessId(user, leaf.id);
+  return !(pathname.startsWith('/masters') && user?.role !== 'ADMIN');
 }
 
 export function firstAllowedPath(user) {

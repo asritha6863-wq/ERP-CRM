@@ -145,10 +145,11 @@ export default function Sidebar() {
   const isActive = (path) => location.pathname === path || location.pathname.startsWith(path + '/');
 
   const visible = NAV
-    .filter((item) => item.roles?.includes(user?.role))
-    .map((item) => (item.children && item.id !== 'masters'
+    .filter((item) => item.id === 'masters' || item.roles?.includes(user?.role))
+    .map((item) => (item.children && !(item.id === 'masters' && user?.role === 'ADMIN')
       ? { ...item, children: item.children.filter((c) => canAccessId(user, c.id)) } : item))
-    .filter((item) => item.id === 'masters' || item.id === 'dashboard' || (item.children ? item.children.length > 0 : canAccessId(user, item.id)));
+    .map((item) => (item.id === 'masters' && user?.role !== 'ADMIN' ? { ...item, children: item.children.filter((c) => c.id !== 'users') } : item))
+    .filter((item) => item.id === 'dashboard' || (item.children ? item.children.length > 0 : canAccessId(user, item.id)));
 
   return (
     <aside className="no-print w-64 flex flex-col shrink-0 h-screen sticky top-0 overflow-hidden"
