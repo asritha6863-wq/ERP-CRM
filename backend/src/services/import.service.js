@@ -1,8 +1,8 @@
-﻿import prisma from '../utils/prisma.js';
+import prisma from '../utils/prisma.js';
 
 const CHUNK = 500;
 
-// ── helpers ────────────────────────────────────────────────────────────────
+// -- helpers ----------------------------------------------------------------
 const str = (v) => (v === null || v === undefined ? '' : String(v).trim());
 
 function applyMapping(raw, mapping) {
@@ -40,6 +40,7 @@ function splitName(row) {
     first = parts.shift() || '';
     last = last || parts.join(' ');
   }
+  if (last && first && last.toLowerCase() === first.toLowerCase()) last = '';
   return { first, last };
 }
 
@@ -58,7 +59,7 @@ async function defaultCompany() {
 
 const PRIORITIES = ['LOW', 'MEDIUM', 'HIGH', 'URGENT'];
 
-// ── Contacts / Customers ───────────────────────────────────────────────────
+// -- Contacts / Customers ---------------------------------------------------
 export async function importContacts(user, rows, mapping) {
   const results = { imported: 0, skipped: 0, errors: [] };
   const company = await defaultCompany();
@@ -114,7 +115,7 @@ export async function importContacts(user, rows, mapping) {
   return results;
 }
 
-// ── Leads ──────────────────────────────────────────────────────────────────
+// -- Leads ------------------------------------------------------------------
 export async function importLeads(user, rows, mapping) {
   const results = { imported: 0, skipped: 0, errors: [] };
   const company = await defaultCompany();
@@ -219,7 +220,7 @@ export async function importLeads(user, rows, mapping) {
   return results;
 }
 
-// ── Masters ────────────────────────────────────────────────────────────────
+// -- Masters ----------------------------------------------------------------
 const MASTER_IMPORTERS = {
   areas: { model: 'area' },
   locations: { model: 'location' },
