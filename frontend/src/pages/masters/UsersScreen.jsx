@@ -8,6 +8,7 @@ import Button from '../../components/ui/Button.jsx';
 import ModalForm from '../../components/ui/ModalForm.jsx';
 import Badge from '../../components/ui/Badge.jsx';
 import api from '../../services/api.js';
+import { ACCESS_MENU, ALL_ACCESS_IDS } from '../../utils/accessMenu.js';
 
 const ROLES = ['ADMIN', 'MANAGER', 'SALES'];
 const ROLE_COLORS = {
@@ -16,7 +17,7 @@ const ROLE_COLORS = {
   SALES:   'bg-teal-100 text-teal-700',
 };
 
-const EMPTY_FORM = { name: '', email: '', password: '', role: 'SALES', branchId: '', dateOfBirth: '' };
+const EMPTY_FORM = { name: '', email: '', password: '', role: 'SALES', branchId: '', dateOfBirth: '', customAccess: false, permissions: [] };
 
 export default function UsersScreen() {
   const {
@@ -48,7 +49,7 @@ export default function UsersScreen() {
   };
 
   const openEdit = (user) => {
-    setForm({ name: user.name, email: user.email, password: '', role: user.role, branchId: user.branchId || '', dateOfBirth: user.dateOfBirth ? user.dateOfBirth.slice(0, 10) : '' });
+    setForm({ name: user.name, email: user.email, password: '', role: user.role, branchId: user.branchId || '', dateOfBirth: user.dateOfBirth ? user.dateOfBirth.slice(0, 10) : '', customAccess: Array.isArray(user.permissions), permissions: Array.isArray(user.permissions) ? user.permissions : [] });
     setEditing(user);
     setFormError('');
     setModalOpen(true);
@@ -58,7 +59,8 @@ export default function UsersScreen() {
     setFormError('');
     setSaving(true);
     try {
-      const payload = { ...form };
+      const { customAccess, ...payload } = form;
+      payload.permissions = customAccess && payload.role !== 'ADMIN' ? form.permissions : null;
       if (editing && !payload.password) delete payload.password; // Don't update password if blank
       if (editing) {
         await update(editing.id, payload);
@@ -72,6 +74,12 @@ export default function UsersScreen() {
       setSaving(false);
     }
   };
+
+  const togglePerm = (ids) => setForm((f) => {
+    const all = ids.every((i) => f.permissions.includes(i));
+    const rest = f.permissions.filter((p) => !ids.includes(p));
+    return { ...f, permissions: all ? rest : [...rest, ...ids] };
+  });
 
   const set = (k) => (e) => setForm((f) => ({ ...f, [k]: e.target.value }));
 
@@ -178,7 +186,48 @@ export default function UsersScreen() {
               {branches.map((b) => <option key={b.id} value={b.id}>{b.name}</option>)}
             </select>
           </div>
-          <div>
+          {form.role !== 'ADMIN' && (
+            <div className="border border-gray-200 rounded-lg p-3">
+              <label className="flex items-center gap-2 text-sm font-medium text-gray-700">
+                <input type="checkbox" checked={form.customAccess}
+                  onChange={(e) => setForm((f) => ({ ...f, customAccess: e.target.checked, permissions: e.target.checked && !f.permissions.length ? [...ALL_ACCESS_IDS] : f.permissions }))} />
+                Restrict access (choose sections this user can open)
+              </label>
+              {!form.customAccess && <p className="text-xs text-gray-400 mt-1">Off: user sees every section allowed for the role.</p>}
+              {form.customAccess && (
+                <div className="mt-3 space-y-3 max-h-64 overflow-y-auto pr-1">
+                  <div className="flex gap-3 text-xs">
+                    <button type="button" className="text-indigo-600" onClick={() => setForm((f) => ({ ...f, permissions: [...ALL_ACCESS_IDS] }))}>Select all</button>
+                    <button type="button" className="text-gray-500" onClick={() => setForm((f) => ({ ...f, permissions: [] }))}>Clear</button>
+                  </div>
+                  {ACCESS_MENU.map((sec) => {
+                    const ids = sec.children ? sec.children.map((c) => c.id) : [sec.id];
+                    const n = ids.filter((i) => form.permissions.includes(i)).length;
+                    return (
+                      <div key={sec.id}>
+                        <label className="flex items-center gap-2 text-sm font-semibold text-gray-800">
+                          <input type="checkbox" checked={n === ids.length}
+                            ref={(el) => { if (el) el.indeterminate = n > 0 && n < ids.length; }}
+                            onChange={() => togglePerm(ids)} />
+                          {sec.label}
+                        </label>
+                        {sec.children && (
+                          <div className="ml-6 mt-1 grid grid-cols-2 gap-x-3 gap-y-1">
+                            {sec.children.map((c) => (
+                              <label key={c.id} className="flex items-center gap-2 text-xs text-gray-600">
+                                <input type="checkbox" checked={form.permissions.includes(c.id)} onChange={() => togglePerm([c.id])} />
+                                {c.label}
+                              </label>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          )}          <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Date of Birth</label>
             <input type="date" value={form.dateOfBirth} onChange={set('dateOfBirth')} className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
           </div>

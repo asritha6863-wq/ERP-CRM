@@ -10,6 +10,7 @@ import { useState } from 'react';
 import { useAuth } from '../../context/AuthContext.jsx';
 import { useTabs } from '../../context/TabContext.jsx';
 import NishkaLogo from '../NishkaLogo.jsx';
+import { canAccessId } from '../../utils/accessMenu.js';
 
 const ALL = ['ADMIN', 'MANAGER', 'SALES'];
 
@@ -143,7 +144,11 @@ export default function Sidebar() {
 
   const isActive = (path) => location.pathname === path || location.pathname.startsWith(path + '/');
 
-  const visible = NAV.filter((item) => item.roles?.includes(user?.role));
+  const visible = NAV
+    .filter((item) => item.roles?.includes(user?.role))
+    .map((item) => (item.children && item.id !== 'masters'
+      ? { ...item, children: item.children.filter((c) => canAccessId(user, c.id)) } : item))
+    .filter((item) => item.id === 'masters' || item.id === 'dashboard' || (item.children ? item.children.length > 0 : canAccessId(user, item.id)));
 
   return (
     <aside className="no-print w-64 flex flex-col shrink-0 h-screen sticky top-0 overflow-hidden"

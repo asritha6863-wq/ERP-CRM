@@ -20,6 +20,7 @@ export const login = asyncHandler(async (req, res) => {
       role: true,
       branchId: true,
       isActive: true,
+      permissions: true,
       password: true,
     },
   });
@@ -47,6 +48,7 @@ export const login = asyncHandler(async (req, res) => {
       name: user.name,
       role: user.role,
       branchId: user.branchId,
+      permissions: user.permissions ?? null,
     },
   });
 });

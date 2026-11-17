@@ -29,6 +29,7 @@ export const authenticate = asyncHandler(async (req, res, next) => {
       role: true,
       branchId: true,
       isActive: true,
+      permissions: true,
     },
   });
 

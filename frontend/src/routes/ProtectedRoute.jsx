@@ -1,10 +1,12 @@
-import { Navigate, Outlet } from 'react-router-dom';
+import { Navigate, Outlet, useLocation } from 'react-router-dom';
+import { canAccessPath, firstAllowedPath } from '../utils/accessMenu.js';
 import { useAuth } from '../context/AuthContext.jsx';
 import { Loader2 } from 'lucide-react';
 
 // Wraps protected routes — redirects to /login if not authenticated
 export default function ProtectedRoute() {
   const { user, loading } = useAuth();
+  const { pathname } = useLocation();
 
   if (loading) {
     return (
@@ -18,6 +20,7 @@ export default function ProtectedRoute() {
     return <Navigate to="/login" replace />;
   }
 
+  if (!canAccessPath(user, pathname)) return <Navigate to={firstAllowedPath(user)} replace />;
   return <Outlet />;
 }
 
