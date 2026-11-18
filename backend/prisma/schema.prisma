@@ -360,6 +360,8 @@ model Deal {
   expectedCloseDate DateTime?
   dueDate           DateTime?
   invoiceRef        String?
+  billDate          DateTime?
+  billNotes         String?
   lostReasonId      String?
   lostReason        LostReason?    @relation(fields: [lostReasonId], references: [id])
   ownerId           String?

@@ -28,6 +28,9 @@ export async function listLeads(user, query) {
     channel,           // OUTDOOR | INSTORE — if omitted returns all
     view,              // created | today | overdue | upcoming — the tabs on the Leads page
     today,             // client's local date (YYYY-MM-DD) so "today" matches the user's day
+    name, phone,       // customer name / phone filters
+    stageId, createdById, priority, dnf,
+    marriageFrom, marriageTo, createdFrom, createdTo,
   } = query;
 
   const skip = (Math.max(1, +page) - 1) * Math.min(100, +limit);
@@ -64,11 +67,39 @@ export async function listLeads(user, query) {
   if (sourceId)     where.sourceId     = sourceId;
   if (branchId)     where.branchId     = branchId;
   if (assignedToId) where.assignedToId = assignedToId;
-  if (dateFrom || dateTo) {
-    where.createdAt = {};
-    if (dateFrom) where.createdAt.gte = new Date(dateFrom);
-    if (dateTo)   where.createdAt.lte = new Date(dateTo);
+  if (stageId)      where.stageId      = stageId;
+  if (createdById && view !== 'created') where.createdById = createdById;
+  if (['LOW', 'MEDIUM', 'HIGH'].includes(priority)) where.priority = priority;
+  if (dnf === 'true' || dnf === 'false') where.dnf = dnf === 'true';
+
+  const and = [];
+  if (name?.trim()) {
+    const parts = name.trim().split(/\s+/);
+    for (const p of parts) {
+      and.push({ OR: [
+        { firstName: { contains: p, mode: 'insensitive' } },
+        { lastName:  { contains: p, mode: 'insensitive' } },
+      ] });
+    }
   }
+  if (phone?.trim()) {
+    const digits = phone.replace(/\D/g, '');
+    and.push({ OR: [
+      { phone:    { contains: digits || phone.trim() } },
+      { altPhone: { contains: digits || phone.trim() } },
+    ] });
+  }
+  if (and.length) where.AND = and;
+
+  // Date ranges. YYYY-MM-DD only; "to" dates include the whole day.
+  const dayStartOf = (v) => (/^\d{4}-\d{2}-\d{2}$/.test(v || '') ? new Date(`${v}T00:00:00.000Z`) : null);
+  const dayEndOf   = (v) => { const d = dayStartOf(v); return d ? new Date(d.getTime() + 86_400_000 - 1) : null; };
+  const createdGte = dayStartOf(createdFrom || dateFrom);
+  const createdLte = dayEndOf(createdTo || dateTo);
+  if (createdGte || createdLte) where.createdAt = { ...(createdGte && { gte: createdGte }), ...(createdLte && { lte: createdLte }) };
+  const mGte = dayStartOf(marriageFrom);
+  const mLte = dayEndOf(marriageTo);
+  if (mGte || mLte) where.marriageDate = { ...(mGte && { gte: mGte }), ...(mLte && { lte: mLte }) };
 
   const [items, total] = await Promise.all([
     prisma.lead.findMany({ where, skip, take, orderBy: { createdAt: 'desc' }, include: LEAD_INCLUDE }),
@@ -272,10 +303,16 @@ export async function bulkAssign(user, { leadIds, assignedToId }) {
   return { updated: leadIds.length };
 }
 
-export async function convertLead(user, id) {
+export async function convertLead(user, id, bill = {}) {
   const lead = await getLead(user, id);
   if (!lead) throw { statusCode: 404, message: 'Lead not found' };
   if (lead.isConverted) throw { statusCode: 409, message: 'Lead already converted' };
+
+  const amount = toNum(bill.value);
+  if (bill.value !== undefined && bill.value !== '' && !(amount > 0)) {
+    throw { statusCode: 400, message: 'Bill amount must be greater than 0' };
+  }
+  if (lead.isLost) throw { statusCode: 409, message: 'A lost lead cannot be converted' };
 
   const [customer] = await prisma.$transaction([
     prisma.customer.create({
@@ -300,9 +337,27 @@ export async function convertLead(user, id) {
     }),
   ]);
 
+  // Bill details: record the purchase as a Won deal
+  if (amount > 0) {
+    const payload = { value: amount, invoiceRef: bill.invoiceRef, billDate: bill.billDate, billNotes: bill.billNotes };
+    if (!lead.isWon) {
+      await winLead(user, id, payload);
+    } else {
+      const wonStage = await prisma.pipelineStage.findFirst({ where: { name: { equals: 'Won', mode: 'insensitive' } } });
+      if (wonStage) {
+        await prisma.deal.create({
+          data: {
+            contactId: lead.contactId || null, leadId: id, stageId: wonStage.id, value: amount,
+            ownerId: user.id, invoiceRef: bill.invoiceRef?.trim() || null,
+            billDate: toDay(bill.billDate), billNotes: bill.billNotes?.trim() || null,
+          },
+        });
+      }
+    }
+  }
+
   return customer;
 }
-
 export async function addActivity(user, leadId, { type, description }) {
   const lead = await getLead(user, leadId);
   if (!lead) throw { statusCode: 404, message: 'Lead not found' };
@@ -338,7 +393,7 @@ async function getDefaultCompanyId() {
   return company?.id || null;
 }
 
-export async function winLead(user, id, { value = 0, invoiceRef }) {
+export async function winLead(user, id, { value = 0, invoiceRef, billDate, billNotes }) {
   const lead = await getLead(user, id);
   if (!lead) throw { statusCode: 404, message: 'Lead not found' };
   if (lead.isWon)  throw { statusCode: 409, message: 'Lead is already Won' };
@@ -371,6 +426,8 @@ export async function winLead(user, id, { value = 0, invoiceRef }) {
         value:      +value,
         ownerId:    user.id,
         invoiceRef: invoiceRef || null,
+        billDate:   toDay(billDate),
+        billNotes:  billNotes?.trim() || null,
       },
     });
 

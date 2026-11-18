@@ -1,9 +1,10 @@
-ï»¿import { useState, useEffect, useRef, useMemo } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
+import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import {
   Plus, Upload, Download, Filter, CheckSquare, Users, Maximize2,
   Phone, Link2, Building2, Calendar, ArrowRight, MoreVertical,
-  CheckCircle2, CircleDot, Pencil, Eye, History, Activity,
+  CheckCircle2, CircleDot, Pencil, Eye, History, Activity, UserCheck, Copy, Check,
 } from 'lucide-react';
 import useLeads    from '../../hooks/useLeads.js';
 import useLookups  from '../../hooks/useLookups.js';
@@ -11,7 +12,8 @@ import { useAuth } from '../../context/AuthContext.jsx';
 import api         from '../../services/api.js';
 import { downloadCsvResponseAsExcel } from '../../utils/excel.js';
 import Pagination  from '../../components/ui/Pagination.jsx';
-import FilterBar   from '../../components/ui/FilterBar.jsx';
+import LeadFilters  from './LeadFilters.jsx';
+import ConvertCustomerModal from './ConvertCustomerModal.jsx';
 import Button      from '../../components/ui/Button.jsx';
 import Badge       from '../../components/ui/Badge.jsx';
 import LeadFormModal from './LeadFormModal.jsx';
@@ -29,6 +31,7 @@ const SUB_TABS = [
 const MENU = [
   { key: 'winloss',  label: 'Won/Loss Status', icon: CheckCircle2, tint: 'text-emerald-500' },
   { key: 'status',   label: 'Lead Status',     icon: CircleDot,    tint: 'text-blue-500'    },
+  { key: 'convert',  label: 'Convert to Customer', icon: UserCheck, tint: 'text-pink-500' },
   { key: 'edit',     label: 'Edit Details',    icon: Pencil,       tint: 'text-blue-500'    },
   { key: 'view',     label: 'View',            icon: Eye,          tint: 'text-blue-500'    },
   { key: 'history',  label: 'History Log',     icon: History,      tint: 'text-gray-500'    },
@@ -41,7 +44,7 @@ const PRIORITY_STYLE = {
   LOW:    'text-slate-500 bg-slate-50 border-slate-300',
 };
 
-const fmt = (d, utc) => (d ? new Date(d).toLocaleDateString('en-GB', utc ? { timeZone: 'UTC' } : undefined) : 'â€”');
+const fmt = (d, utc) => (d ? new Date(d).toLocaleDateString('en-GB', utc ? { timeZone: 'UTC' } : undefined) : '—');
 
 export default function LeadsPage() {
   const navigate    = useNavigate();
@@ -53,9 +56,9 @@ export default function LeadsPage() {
 
   const {
     data, total, pages, page, setPage,
-    search, setSearch, filters, setFilter, clearFilters,
+    search, setSearch, filters, setFilter, applyFilters, clearFilters,
     loading, error, limit,
-    createLead, updateLead, bulkAssign, winLead, loseLead, refetch,
+    createLead, updateLead, bulkAssign, convertLead, winLead, loseLead, refetch,
   } = useLeads('OUTDOOR', view);
 
   const [formOpen, setFormOpen]       = useState(false);
@@ -70,6 +73,16 @@ export default function LeadsPage() {
   const [dialog, setDialog]           = useState(null);   // { type, lead }
   const [notice, setNotice]           = useState('');
   const menuRef = useRef(null);
+  const [copied, setCopied] = useState('');
+
+  const copyPhone = async (text) => {
+    try { await navigator.clipboard.writeText(text); }
+    catch {
+      const t = document.createElement('textarea'); t.value = text; document.body.appendChild(t); t.select();
+      try { document.execCommand('copy'); } finally { document.body.removeChild(t); }
+    }
+    setCopied(text); setTimeout(() => setCopied(''), 1500);
+  };
 
   const canSeeAll    = user?.role !== 'SALES';
   const isAdminOrMgr = user?.role === 'ADMIN' || user?.role === 'MANAGER';
@@ -111,6 +124,7 @@ export default function LeadsPage() {
 
   const runAction = (key, lead) => {
     setMenu(null);
+    if (key === 'convert' && lead.isConverted) { setNotice('This lead is already converted to a customer.'); return undefined; }
     if (key === 'view') return navigate(`/leads/${lead.id}`);
     if (key === 'edit') { setEditing(lead); setFormOpen(true); return undefined; }
     return setDialog({ type: key, lead });
@@ -190,7 +204,7 @@ export default function LeadsPage() {
               <Upload className="w-4 h-4" /> Import
             </button>
             <button onClick={exportCsv} disabled={exporting} className="flex items-center gap-1.5 px-3 py-2 rounded-lg border border-gray-200 hover:bg-gray-50 text-sm text-gray-600 disabled:opacity-60">
-              <Download className="w-4 h-4" /> {exporting ? 'Exportingâ€¦' : 'Export'}
+              <Download className="w-4 h-4" /> {exporting ? 'Exporting…' : 'Export'}
             </button>
             <button
               onClick={() => { setEditing(null); setFormOpen(true); }}
@@ -219,18 +233,7 @@ export default function LeadsPage() {
 
       {/* Filters */}
       {filtersOpen && (
-        <div className="bg-gray-50 border-b border-gray-200 px-6 py-3 flex flex-wrap items-center gap-2">
-          <FilterBar search={search} onSearch={setSearch} placeholder="Search by name, phone, emailâ€¦" onClear={clearFilters} />
-          <FilterSelect label="Status" value={filters.statusId} onChange={(v) => setFilter('statusId', v)} options={lookups.statuses} />
-          <FilterSelect label="Source" value={filters.sourceId} onChange={(v) => setFilter('sourceId', v)} options={lookups.sources} />
-          {canSeeAll && <FilterSelect label="Branch" value={filters.branchId} onChange={(v) => setFilter('branchId', v)} options={lookups.branches} />}
-          {isAdminOrMgr && <FilterSelect label="Staff" value={filters.assignedToId} onChange={(v) => setFilter('assignedToId', v)} options={lookups.staff} />}
-          <input type="date" value={filters.dateFrom} onChange={(e) => setFilter('dateFrom', e.target.value)}
-            className="rounded-lg border border-gray-300 px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white" />
-          <span className="text-gray-400 text-sm">to</span>
-          <input type="date" value={filters.dateTo} onChange={(e) => setFilter('dateTo', e.target.value)}
-            className="rounded-lg border border-gray-300 px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white" />
-        </div>
+        <LeadFilters filters={filters} lookups={lookups} canSeeAll={canSeeAll} onApply={applyFilters} onClear={clearFilters} />
       )}
 
       {/* Bulk assign */}
@@ -239,7 +242,7 @@ export default function LeadsPage() {
           <span className="font-medium text-indigo-700">{selected.size} selected</span>
           <select value={assigneeId} onChange={(e) => setAssigneeId(e.target.value)}
             className="rounded-lg border border-gray-300 px-2 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500 bg-white">
-            <option value="">Assign toâ€¦</option>
+            <option value="">Assign to…</option>
             {lookups.staff.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
           </select>
           <Button size="sm" loading={assigning} onClick={handleBulkAssign}>Assign</Button>
@@ -266,7 +269,7 @@ export default function LeadsPage() {
               </tr>
             </thead>
             <tbody>
-              {loading && <tr><td colSpan={13} className="text-center text-gray-400 py-12">Loadingâ€¦</td></tr>}
+              {loading && <tr><td colSpan={13} className="text-center text-gray-400 py-12">Loading…</td></tr>}
               {!loading && data.length === 0 && <tr><td colSpan={13} className="text-center text-gray-400 py-12">No leads found</td></tr>}
 
               {!loading && data.map((lead) => {
@@ -289,21 +292,21 @@ export default function LeadsPage() {
                     </td>
 
                     <td className="px-4 py-4 text-xs text-gray-600 space-y-1 whitespace-nowrap">
-                      <p className="flex items-center gap-1.5"><Phone className="w-3 h-3 text-gray-400" /> {lead.phone || 'â€”'}</p>
-                      {lead.altPhone && <p className="flex items-center gap-1.5"><Link2 className="w-3 h-3 text-gray-400" /> {lead.altPhone} <span className="text-gray-400">(Alt)</span></p>}
+                      <p className="flex items-center gap-1.5 select-text"><Phone className="w-3 h-3 text-gray-400" /> <span className="select-text">{lead.phone || '—'}</span>{lead.phone && <CopyBtn done={copied === lead.phone} onClick={() => copyPhone(lead.phone)} />}</p>
+                      {lead.altPhone && <p className="flex items-center gap-1.5"><Link2 className="w-3 h-3 text-gray-400" /> <span className="select-text">{lead.altPhone}</span> <span className="text-gray-400">(Alt)</span><CopyBtn done={copied === lead.altPhone} onClick={() => copyPhone(lead.altPhone)} /></p>}
                       {lead.area && <p className="flex items-center gap-1.5"><Building2 className="w-3 h-3 text-gray-400" /> {lead.area}</p>}
                     </td>
 
-                    {canSeeAll && <td className="px-4 py-4 text-xs font-semibold text-gray-800 uppercase max-w-[160px]">{lead.branch?.name || 'â€”'}</td>}
+                    {canSeeAll && <td className="px-4 py-4 text-xs font-semibold text-gray-800 uppercase max-w-[160px]">{lead.branch?.name || '—'}</td>}
 
                     <td className="px-4 py-4">
                       {lead.source?.name
                         ? <span className="inline-block text-[11px] text-gray-700 bg-gray-100 border border-gray-200 rounded-md px-2 py-1">{lead.source.name}</span>
-                        : <span className="text-gray-300">â€”</span>}
+                        : <span className="text-gray-300">—</span>}
                     </td>
 
                     <td className="px-4 py-4 text-[11px] font-bold text-gray-800 uppercase tracking-wide max-w-[90px]">
-                      {lead.stage?.name || firstStageName || 'â€”'}
+                      {lead.stage?.name || firstStageName || '—'}
                     </td>
 
                     <td className="px-4 py-4"><StatusCell lead={lead} /></td>
@@ -323,7 +326,7 @@ export default function LeadsPage() {
                         <span className={`flex items-center gap-1.5 font-medium ${dueNow ? 'text-orange-500' : 'text-gray-700'}`}>
                           <Calendar className={`w-3.5 h-3.5 ${dueNow ? 'text-orange-500' : 'text-emerald-500'}`} /> {fmt(lead.dueDate, true)}
                         </span>
-                      ) : <span className="text-gray-300">â€”</span>}
+                      ) : <span className="text-gray-300">—</span>}
                     </td>
 
                     <td className="px-4 py-4">
@@ -334,7 +337,7 @@ export default function LeadsPage() {
                           </span>
                           {lead.assignedTo.name}
                         </span>
-                      ) : <span className="text-gray-300">â€”</span>}
+                      ) : <span className="text-gray-300">—</span>}
                     </td>
 
                     <td className="px-4 py-4">
@@ -356,7 +359,7 @@ export default function LeadsPage() {
       </div>
 
       {/* Row action menu */}
-      {menu && (
+      {menu && createPortal(
         <div ref={menuRef} role="menu" style={{ top: menu.top, left: menu.left }}
           className="fixed z-50 w-48 bg-white border border-gray-200 rounded-xl shadow-xl py-1.5">
           {MENU.map(({ key, label, icon: Icon, tint }) => (
@@ -365,7 +368,8 @@ export default function LeadsPage() {
               <Icon className={`w-4 h-4 ${tint}`} /> {label}
             </button>
           ))}
-        </div>
+        </div>,
+        document.body,
       )}
 
       <LeadFormModal open={formOpen} onClose={() => setFormOpen(false)} initial={editing} onSave={handleSave} lookups={lookups} />
@@ -379,6 +383,7 @@ export default function LeadsPage() {
         open={dialog?.type === 'status'} lead={dialog?.lead} statuses={lookups.statuses}
         onSave={updateLead} onClose={() => setDialog(null)}
       />
+      <ConvertCustomerModal open={dialog?.type === 'convert'} lead={dialog?.lead} onConvert={convertLead} onClose={() => setDialog(null)} />
       <HistoryModal open={dialog?.type === 'history'} lead={dialog?.lead} onClose={() => setDialog(null)} />
       <Customer360Modal open={dialog?.type === 'c360'} lead={dialog?.lead} onClose={() => setDialog(null)} />
     </div>
@@ -417,13 +422,11 @@ function Pill({ className = '', children }) {
   return <span className={`inline-block text-[10px] font-bold rounded-full px-2.5 py-0.5 border ${className}`}>{children}</span>;
 }
 
-function FilterSelect({ label, value, onChange, options }) {
+function CopyBtn({ done, onClick }) {
   return (
-    <select value={value} onChange={(e) => onChange(e.target.value)}
-      className="rounded-lg border border-gray-300 px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white">
-      <option value="">All {label}s</option>
-      {options.map((o) => <option key={o.id} value={o.id}>{o.name}</option>)}
-    </select>
+    <button type="button" onClick={onClick} title="Copy number" aria-label="Copy number"
+      className="p-0.5 rounded text-gray-300 hover:text-indigo-500 hover:bg-gray-100">
+      {done ? <Check className="w-3 h-3 text-emerald-500" /> : <Copy className="w-3 h-3" />}
+    </button>
   );
 }
-

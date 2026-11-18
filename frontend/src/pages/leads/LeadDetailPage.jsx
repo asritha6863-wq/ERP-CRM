@@ -6,6 +6,7 @@ import Badge  from '../../components/ui/Badge.jsx';
 import Button from '../../components/ui/Button.jsx';
 import ModalForm from '../../components/ui/ModalForm.jsx';
 import LeadFormModal from './LeadFormModal.jsx';
+import ConvertCustomerModal from './ConvertCustomerModal.jsx';
 import useLookups from '../../hooks/useLookups.js';
 
 const ACTIVITY_ICONS = {
@@ -39,6 +40,7 @@ export default function LeadDetailPage() {
   const [noteOpen, setNoteOpen]   = useState(false);
   const [noteForm, setNoteForm]   = useState({ type: 'NOTE', description: '' });
   const [saving, setSaving]       = useState(false);
+  const [convertOpen, setConvertOpen] = useState(false);
 
   const fetchLead = async () => {
     setLoading(true);
@@ -67,10 +69,8 @@ export default function LeadDetailPage() {
     } finally { setSaving(false); }
   };
 
-  const handleConvert = async () => {
-    if (!confirm('Convert this lead to a customer?')) return;
-    await api.post(`/leads/${id}/convert`);
-    fetchLead();
+  const handleConvert = async (leadId, body) => {
+    await api.post(`/leads/${leadId}/convert`, body);
   };
 
   if (loading) return <div className="flex items-center justify-center h-64 text-gray-400">Loading…</div>;
@@ -86,10 +86,12 @@ export default function LeadDetailPage() {
         <div className="flex items-center gap-2">
           <Button variant="secondary" size="sm" onClick={() => setEditOpen(true)}>Edit</Button>
           {!lead.isConverted && (
-            <Button size="sm" icon={UserCheck} onClick={handleConvert}>Convert to Customer</Button>
+            <Button size="sm" icon={UserCheck} onClick={() => setConvertOpen(true)}>Convert to Customer</Button>
           )}
         </div>
       </div>
+
+      <ConvertCustomerModal open={convertOpen} lead={lead} onConvert={handleConvert} onClose={(done) => { setConvertOpen(false); if (done) fetchLead(); }} />
 
       <div className="grid grid-cols-3 gap-6">
         {/* ── Profile card ── */}
