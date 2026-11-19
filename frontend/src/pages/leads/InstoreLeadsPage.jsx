@@ -1,10 +1,9 @@
 import { useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
-import {
-  Plus, Upload, Download, Filter, Users, Store,
+import { Plus, Upload, Download, Filter, Users, Store,
   Phone, Calendar, ArrowRight, MoreVertical,
-  CheckCircle2, CircleDot, Pencil, Eye, History, Activity, UserCheck, Copy, Check,
+  CheckCircle2, CircleDot, Pencil, Eye, History, Activity, Copy, Check,
 } from 'lucide-react';
 import useLeads        from '../../hooks/useLeads.js';
 import useLookups      from '../../hooks/useLookups.js';
@@ -24,7 +23,6 @@ import { WonLossModal, LeadStatusModal, HistoryModal, Customer360Modal } from '.
 const MENU = [
   { key: 'winloss',  label: 'Won/Loss Status',      icon: CheckCircle2, tint: 'text-emerald-500' },
   { key: 'status',   label: 'Lead Status',           icon: CircleDot,    tint: 'text-blue-500'    },
-  { key: 'convert',  label: 'Convert to Customer',   icon: UserCheck,    tint: 'text-pink-500'    },
   { key: 'edit',     label: 'Edit Details',          icon: Pencil,       tint: 'text-blue-500'    },
   { key: 'view',     label: 'View',                  icon: Eye,          tint: 'text-blue-500'    },
   { key: 'history',  label: 'History Log',           icon: History,      tint: 'text-gray-500'    },
@@ -338,10 +336,6 @@ export default function InstoreLeadsPage() {
       <LeadStatusModal
         open={dialog?.type === 'status'} lead={dialog?.lead} statuses={lookups.statuses}
         onSave={updateLead} onClose={() => setDialog(null)}
-      />
-      <ConvertCustomerModal
-        open={dialog?.type === 'convert'} lead={dialog?.lead}
-        onConvert={convertLead} onClose={() => setDialog(null)}
       />
       <HistoryModal open={dialog?.type === 'history'} lead={dialog?.lead} onClose={() => setDialog(null)} />
       <Customer360Modal open={dialog?.type === 'c360'} lead={dialog?.lead} onClose={() => setDialog(null)} />
