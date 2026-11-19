@@ -45,11 +45,19 @@ export function WonLossModal({ open, lead, lostReasons, onWin, onLose, onClose }
   const [outcome, setOutcome] = useState('WON');
   const [value, setValue] = useState('');
   const [invoiceRef, setInvoiceRef] = useState('');
+  const [billDate, setBillDate] = useState('');
+  const [billNotes, setBillNotes] = useState('');
   const [lostReasonId, setLostReasonId] = useState('');
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
 
-  useEffect(() => { if (open) { setOutcome('WON'); setValue(''); setInvoiceRef(''); setLostReasonId(''); setError(''); } }, [open]);
+  useEffect(() => {
+    if (open) {
+      setOutcome('WON'); setValue(''); setInvoiceRef('');
+      setBillDate(new Date().toLocaleDateString('en-CA'));
+      setBillNotes(''); setLostReasonId(''); setError('');
+    }
+  }, [open]);
 
   const submit = async (e) => {
     e.preventDefault();
@@ -58,7 +66,7 @@ export function WonLossModal({ open, lead, lostReasons, onWin, onLose, onClose }
     if (outcome === 'LOST' && !lostReasonId) return setError('Select a loss reason');
     setSaving(true);
     try {
-      if (outcome === 'WON') await onWin(lead.id, { value: +value, invoiceRef: invoiceRef.trim() || undefined });
+      if (outcome === 'WON') await onWin(lead.id, { value: +value, invoiceRef: invoiceRef.trim() || undefined, billDate: billDate || undefined, billNotes: billNotes.trim() || undefined });
       else await onLose(lead.id, { lostReasonId });
       onClose();
     } catch (err) {
@@ -89,9 +97,20 @@ export function WonLossModal({ open, lead, lostReasons, onWin, onLose, onClose }
             <>
               <label className="block"><span className="block text-xs font-semibold text-gray-500 mb-1.5">Sale value (₹) *</span>
                 <input type="number" min="1" step="0.01" value={value} onChange={(e) => setValue(e.target.value)} className={INPUT} placeholder="e.g. 25000" /></label>
-              <label className="block"><span className="block text-xs font-semibold text-gray-500 mb-1.5">Invoice reference</span>
-                <input value={invoiceRef} onChange={(e) => setInvoiceRef(e.target.value)} className={INPUT} placeholder="e.g. INV-2026-001" /></label>
-              <p className="text-xs text-gray-400">A deal is created in the Won stage with this value.</p>
+
+              <div className="border-t border-gray-100 pt-3">
+                <p className="text-xs text-gray-400 mb-3">Add the bill details for this purchase. Leave the amount empty to save without a bill.</p>
+                <label className="block mb-3"><span className="block text-xs font-semibold text-gray-500 mb-1.5">Bill / Invoice No.</span>
+                  <input value={invoiceRef} onChange={(e) => setInvoiceRef(e.target.value)} className={INPUT} placeholder="e.g. INV-2026-001" /></label>
+                <div className="grid grid-cols-2 gap-3 mb-3">
+                  <label className="block"><span className="block text-xs font-semibold text-gray-500 mb-1.5">Bill Date</span>
+                    <input type="date" value={billDate} onChange={(e) => setBillDate(e.target.value)} className={INPUT} /></label>
+                  <label className="block"><span className="block text-xs font-semibold text-gray-500 mb-1.5">Bill Amount (₹)</span>
+                    <input type="number" min="1" step="0.01" value={value} onChange={(e) => setValue(e.target.value)} className={INPUT} placeholder="e.g. 25000" /></label>
+                </div>
+                <label className="block"><span className="block text-xs font-semibold text-gray-500 mb-1.5">Remarks</span>
+                  <textarea rows={2} value={billNotes} onChange={(e) => setBillNotes(e.target.value)} className={INPUT} placeholder="Items purchased, notes…" /></label>
+              </div>
             </>
           ) : (
             <label className="block"><span className="block text-xs font-semibold text-gray-500 mb-1.5">Loss reason *</span>
