@@ -13,6 +13,7 @@ import { downloadCsvResponseAsExcel } from '../../utils/excel.js';
 import Pagination  from '../../components/ui/Pagination.jsx';
 import LeadFilters  from './LeadFilters.jsx';
 import ConvertCustomerModal from './ConvertCustomerModal.jsx';
+import StageProgressionModal from './StageProgressionModal.jsx';
 import Button      from '../../components/ui/Button.jsx';
 import Badge       from '../../components/ui/Badge.jsx';
 import LeadFormModal from './LeadFormModal.jsx';
@@ -69,6 +70,7 @@ export default function LeadsPage() {
   const [exporting, setExporting]     = useState(false);
   const [menu, setMenu]               = useState(null);   // { lead, top, left }
   const [dialog, setDialog]           = useState(null);   // { type, lead }
+  const [stageModal, setStageModal]   = useState(null);   // lead
   const [notice, setNotice]           = useState('');
   const menuRef = useRef(null);
   const [copied, setCopied] = useState('');
@@ -339,7 +341,7 @@ export default function LeadsPage() {
 
                     <td className="px-4 py-4">
                       <div className="flex items-center gap-1">
-                        <button onClick={() => navigate(`/leads/${lead.id}`)} aria-label={`Open ${lead.firstName}`}
+                        <button onClick={() => setStageModal(lead)} aria-label={`Stage progression ${lead.firstName}`}
                           className="p-1.5 rounded-md text-orange-500 hover:bg-orange-50"><ArrowRight className="w-4 h-4" /></button>
                         <button onClick={(e) => openMenu(e, lead)} aria-label="More actions" aria-haspopup="menu"
                           className="p-1.5 rounded-md text-gray-500 hover:bg-gray-100"><MoreVertical className="w-4 h-4" /></button>
@@ -382,6 +384,11 @@ export default function LeadsPage() {
       />
       <HistoryModal open={dialog?.type === 'history'} lead={dialog?.lead} onClose={() => setDialog(null)} />
       <Customer360Modal open={dialog?.type === 'c360'} lead={dialog?.lead} onClose={() => setDialog(null)} />
+
+      <StageProgressionModal
+        open={!!stageModal} lead={stageModal} stages={lookups.stages}
+        onSave={updateLead} onClose={() => { setStageModal(null); refetch(); }}
+      />
     </div>
   );
 }

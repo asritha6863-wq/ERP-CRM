@@ -18,6 +18,7 @@ import LeadFormModal   from './LeadFormModal.jsx';
 import ImportModal     from './ImportModal.jsx';
 import LeadFilters     from './LeadFilters.jsx';
 import ConvertCustomerModal from './ConvertCustomerModal.jsx';
+import StageProgressionModal from './StageProgressionModal.jsx';
 import { WonLossModal, LeadStatusModal, HistoryModal, Customer360Modal } from './LeadActionModals.jsx';
 
 const MENU = [
@@ -57,6 +58,7 @@ export default function InstoreLeadsPage() {
   const [exporting, setExporting]     = useState(false);
   const [menu, setMenu]               = useState(null);
   const [dialog, setDialog]           = useState(null);
+  const [stageModal, setStageModal]   = useState(null);
   const [notice, setNotice]           = useState('');
   const [copied, setCopied]           = useState('');
   const menuRef = useRef(null);
@@ -293,7 +295,7 @@ export default function InstoreLeadsPage() {
 
                     <td className="px-4 py-4">
                       <div className="flex items-center gap-1">
-                        <button onClick={() => navigate(`/leads/${lead.id}`)} className="p-1.5 rounded-md text-pink-500 hover:bg-pink-50"><ArrowRight className="w-4 h-4" /></button>
+                        <button onClick={() => setStageModal(lead)} className="p-1.5 rounded-md text-pink-500 hover:bg-pink-50"><ArrowRight className="w-4 h-4" /></button>
                         <button onClick={(e) => openMenu(e, lead)} className="p-1.5 rounded-md text-gray-500 hover:bg-gray-100"><MoreVertical className="w-4 h-4" /></button>
                       </div>
                     </td>
@@ -339,6 +341,11 @@ export default function InstoreLeadsPage() {
       />
       <HistoryModal open={dialog?.type === 'history'} lead={dialog?.lead} onClose={() => setDialog(null)} />
       <Customer360Modal open={dialog?.type === 'c360'} lead={dialog?.lead} onClose={() => setDialog(null)} />
+
+      <StageProgressionModal
+        open={!!stageModal} lead={stageModal} stages={lookups.stages}
+        onSave={updateLead} onClose={() => { setStageModal(null); refetch(); }}
+      />
     </div>
   );
 }
