@@ -138,7 +138,7 @@ export default function InstoreLeadsPage() {
   };
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col">
 
       {/* Header */}
       <div className="bg-white border-b border-gray-200 px-6 py-4">
@@ -199,7 +199,7 @@ export default function InstoreLeadsPage() {
       )}
 
       {/* Table */}
-      <div className="flex-1 overflow-auto px-6 py-4 space-y-4">
+      <div className="px-6 py-4 space-y-4">
         {(error || notice) && <div className="bg-red-50 text-red-600 text-sm rounded-lg px-4 py-3 border border-red-200">{error || notice}</div>}
 
         <div className="bg-white border border-gray-200 rounded-2xl overflow-x-auto">
@@ -295,7 +295,9 @@ export default function InstoreLeadsPage() {
 
                     <td className="px-4 py-4">
                       <div className="flex items-center gap-1">
-                        <button onClick={() => setStageModal(lead)} className="p-1.5 rounded-md text-pink-500 hover:bg-pink-50"><ArrowRight className="w-4 h-4" /></button>
+                        {(!lead.isWon && !lead.isLost) && (
+                          <button onClick={() => setStageModal(lead)} className="p-1.5 rounded-md text-pink-500 hover:bg-pink-50"><ArrowRight className="w-4 h-4" /></button>
+                        )}
                         <button onClick={(e) => openMenu(e, lead)} className="p-1.5 rounded-md text-gray-500 hover:bg-gray-100"><MoreVertical className="w-4 h-4" /></button>
                       </div>
                     </td>

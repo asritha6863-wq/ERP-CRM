@@ -33,7 +33,7 @@ export default function LeadFilters({ filters, lookups, canSeeAll, onApply, onCl
   const date = (k) => <input type="date" value={draft[k]} onChange={(e) => set(k)(e.target.value)} className={INPUT} />;
 
   return (
-    <div className="bg-white border-b border-gray-200 px-6 py-4">
+    <div className="bg-white border-b border-gray-200 px-6 py-4 overflow-y-auto max-h-[60vh]">
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
         <Field label="Customer Name">{text('name', 'Search name...')}</Field>
         <Field label="Phone Number">{text('phone', 'Search phone...')}</Field>

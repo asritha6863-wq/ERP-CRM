@@ -10,7 +10,7 @@ export default function AppLayout() {
       <div className="flex-1 flex flex-col min-w-0 print:block">
         <Topbar />
         <TabBar />
-        <main className="flex-1 overflow-y-auto p-6 print:overflow-visible print:p-0 page-enter">
+        <main className="flex-1 min-h-0 overflow-y-auto print:overflow-visible page-enter">
           <Outlet />
         </main>
       </div>
