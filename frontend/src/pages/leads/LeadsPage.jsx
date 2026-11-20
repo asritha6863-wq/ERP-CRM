@@ -382,7 +382,7 @@ export default function LeadsPage() {
       />
       <LeadStatusModal
         open={dialog?.type === 'status'} lead={dialog?.lead} statuses={lookups.statuses}
-        onSave={updateLead} onClose={() => setDialog(null)}
+        onSave={updateLead} onClose={() => { setDialog(null); refetch(); }}
       />
       <HistoryModal open={dialog?.type === 'history'} lead={dialog?.lead} onClose={() => setDialog(null)} />
       <Customer360Modal open={dialog?.type === 'c360'} lead={dialog?.lead} onClose={() => setDialog(null)} />

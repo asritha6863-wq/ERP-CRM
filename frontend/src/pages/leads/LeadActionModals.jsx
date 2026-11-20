@@ -133,31 +133,47 @@ export function LeadStatusModal({ open, lead, statuses, onSave, onClose }) {
   const [statusId, setStatusId] = useState('');
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState(false);
 
-  useEffect(() => { if (open) { setStatusId(lead?.statusId || ''); setError(''); } }, [open, lead]);
+  useEffect(() => { if (open) { setStatusId(lead?.statusId || ''); setError(''); setSuccess(false); } }, [open, lead]);
 
   const submit = async (e) => {
     e.preventDefault();
     if (!statusId) return setError('Select a status');
     setSaving(true); setError('');
-    try { await onSave(lead.id, { statusId }); onClose(); }
+    try {
+      await onSave(lead.id, { statusId });
+      setSuccess(true);
+      setTimeout(() => onClose(), 800);
+    }
     catch (err) { setError(err.response?.data?.error || 'Could not update the status'); }
     finally { setSaving(false); }
   };
 
   return (
     <Shell open={open} title="Lead Status" subtitle={leadName(lead)} onClose={onClose}>
-      <form onSubmit={submit} className="space-y-4">
-        <select value={statusId} onChange={(e) => setStatusId(e.target.value)} className={INPUT}>
-          <option value="">Select status…</option>
-          {statuses.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
-        </select>
-        {error && <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">{error}</p>}
-        <div className="flex justify-end gap-3">
-          <button type="button" onClick={onClose} className="px-5 py-2 rounded-lg border border-gray-200 text-sm text-gray-600 hover:bg-gray-50">Cancel</button>
-          <button disabled={saving} className="px-6 py-2 rounded-lg bg-pink-500 hover:bg-pink-600 text-white text-sm font-semibold disabled:opacity-60">{saving ? 'Saving…' : 'Save'}</button>
+      {success ? (
+        <div className="flex flex-col items-center py-6 gap-3">
+          <div className="w-12 h-12 rounded-full bg-emerald-100 flex items-center justify-center">
+            <span className="text-2xl">✓</span>
+          </div>
+          <p className="text-sm font-semibold text-emerald-700">Status updated!</p>
         </div>
-      </form>
+      ) : (
+        <form onSubmit={submit} className="space-y-4">
+          <select value={statusId} onChange={(e) => setStatusId(e.target.value)} className={INPUT}>
+            <option value="">Select status…</option>
+            {statuses.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
+          </select>
+          {error && <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">{error}</p>}
+          <div className="flex justify-end gap-3">
+            <button type="button" onClick={onClose} className="px-5 py-2 rounded-lg border border-gray-200 text-sm text-gray-600 hover:bg-gray-50">Cancel</button>
+            <button disabled={saving} className="px-6 py-2 rounded-lg bg-pink-500 hover:bg-pink-600 text-white text-sm font-semibold disabled:opacity-60 min-w-[80px]">
+              {saving ? 'Saving…' : 'Save'}
+            </button>
+          </div>
+        </form>
+      )}
     </Shell>
   );
 }
