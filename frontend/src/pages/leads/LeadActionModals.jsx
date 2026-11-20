@@ -62,7 +62,7 @@ export function WonLossModal({ open, lead, lostReasons, onWin, onLose, onClose }
   const submit = async (e) => {
     e.preventDefault();
     setError('');
-    if (outcome === 'WON' && !(+value > 0)) return setError('Enter the sale value (greater than 0)');
+    if (outcome === 'WON' && value !== '' && !(+value > 0)) return setError('Bill amount must be greater than 0');
     if (outcome === 'LOST' && !lostReasonId) return setError('Select a loss reason');
     setSaving(true);
     try {
@@ -95,22 +95,17 @@ export function WonLossModal({ open, lead, lostReasons, onWin, onLose, onClose }
 
           {outcome === 'WON' ? (
             <>
-              <label className="block"><span className="block text-xs font-semibold text-gray-500 mb-1.5">Sale value (₹) *</span>
-                <input type="number" min="1" step="0.01" value={value} onChange={(e) => setValue(e.target.value)} className={INPUT} placeholder="e.g. 25000" /></label>
-
-              <div className="border-t border-gray-100 pt-3">
-                <p className="text-xs text-gray-400 mb-3">Add the bill details for this purchase. Leave the amount empty to save without a bill.</p>
-                <label className="block mb-3"><span className="block text-xs font-semibold text-gray-500 mb-1.5">Bill / Invoice No.</span>
-                  <input value={invoiceRef} onChange={(e) => setInvoiceRef(e.target.value)} className={INPUT} placeholder="e.g. INV-2026-001" /></label>
-                <div className="grid grid-cols-2 gap-3 mb-3">
-                  <label className="block"><span className="block text-xs font-semibold text-gray-500 mb-1.5">Bill Date</span>
-                    <input type="date" value={billDate} onChange={(e) => setBillDate(e.target.value)} className={INPUT} /></label>
-                  <label className="block"><span className="block text-xs font-semibold text-gray-500 mb-1.5">Bill Amount (₹)</span>
-                    <input type="number" min="1" step="0.01" value={value} onChange={(e) => setValue(e.target.value)} className={INPUT} placeholder="e.g. 25000" /></label>
-                </div>
-                <label className="block"><span className="block text-xs font-semibold text-gray-500 mb-1.5">Remarks</span>
-                  <textarea rows={2} value={billNotes} onChange={(e) => setBillNotes(e.target.value)} className={INPUT} placeholder="Items purchased, notes…" /></label>
+              <p className="text-xs text-gray-400">Add the bill details for this purchase. Leave the amount empty to save without a bill.</p>
+              <label className="block"><span className="block text-xs font-semibold text-gray-500 mb-1.5">Bill / Invoice No.</span>
+                <input value={invoiceRef} onChange={(e) => setInvoiceRef(e.target.value)} className={INPUT} placeholder="e.g. INV-2026-001" /></label>
+              <div className="grid grid-cols-2 gap-3">
+                <label className="block"><span className="block text-xs font-semibold text-gray-500 mb-1.5">Bill Date</span>
+                  <input type="date" value={billDate} onChange={(e) => setBillDate(e.target.value)} className={INPUT} /></label>
+                <label className="block"><span className="block text-xs font-semibold text-gray-500 mb-1.5">Bill Amount (₹)</span>
+                  <input type="number" min="1" step="0.01" value={value} onChange={(e) => setValue(e.target.value)} className={INPUT} placeholder="e.g. 25000" /></label>
               </div>
+              <label className="block"><span className="block text-xs font-semibold text-gray-500 mb-1.5">Remarks</span>
+                <textarea rows={2} value={billNotes} onChange={(e) => setBillNotes(e.target.value)} className={INPUT} placeholder="Items purchased, notes…" /></label>
             </>
           ) : (
             <label className="block"><span className="block text-xs font-semibold text-gray-500 mb-1.5">Loss reason *</span>
