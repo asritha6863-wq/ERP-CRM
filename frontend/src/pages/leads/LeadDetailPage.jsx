@@ -1,12 +1,11 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, UserCheck, MessageSquare, Phone, User, Clock, AlertCircle } from 'lucide-react';
+import { ArrowLeft, MessageSquare, Phone, User, Clock, AlertCircle } from 'lucide-react';
 import api    from '../../services/api.js';
 import Badge  from '../../components/ui/Badge.jsx';
 import Button from '../../components/ui/Button.jsx';
 import ModalForm from '../../components/ui/ModalForm.jsx';
 import LeadFormModal from './LeadFormModal.jsx';
-import ConvertCustomerModal from './ConvertCustomerModal.jsx';
 import useLookups from '../../hooks/useLookups.js';
 
 const ACTIVITY_ICONS = {
@@ -38,7 +37,6 @@ export default function LeadDetailPage() {
   const [loading, setLoading]     = useState(true);
   const [editOpen, setEditOpen]   = useState(false);
   const [noteOpen, setNoteOpen]   = useState(false);
-  const [convertOpen, setConvertOpen] = useState(false);
   const [noteForm, setNoteForm]   = useState({ type: 'NOTE', description: '' });
   const [saving, setSaving]       = useState(false);
 
@@ -69,10 +67,6 @@ export default function LeadDetailPage() {
     } finally { setSaving(false); }
   };
 
-  const handleConvert = async (leadId, body) => {
-    await api.post(`/leads/${leadId}/convert`, body);
-  };
-
   if (loading) return <div className="flex items-center justify-center h-64 text-gray-400">Loading…</div>;
   if (!lead)   return null;
 
@@ -86,19 +80,8 @@ export default function LeadDetailPage() {
         </button>
         <div className="flex items-center gap-2">
           <Button variant="secondary" size="sm" onClick={() => setEditOpen(true)}>Edit</Button>
-          {!lead.isConverted && (
-            <Button size="sm" icon={UserCheck} onClick={() => setConvertOpen(true)}>Convert to Customer</Button>
-          )}
         </div>
       </div>
-
-      <ConvertCustomerModal
-        open={convertOpen}
-        lead={lead}
-        onConvert={handleConvert}
-        onClose={(done) => { setConvertOpen(false); if (done) fetchLead(); }}
-      />
-
       <div className="grid grid-cols-3 gap-6">
 
         {/* Profile card */}
