@@ -448,11 +448,11 @@ export async function winLead(user, id, { value = 0, invoiceRef, billDate, billN
   return result;
 }
 
-export async function loseLead(user, id, { lostReasonId }) {
+export async function loseLead(user, id, { lostReasonId, lossReason, remarks }) {
   const lead = await getLead(user, id);
   if (!lead) throw { statusCode: 404, message: 'Lead not found' };
   if (lead.isLost) throw { statusCode: 409, message: 'Lead is already Lost' };
-  if (!lostReasonId) throw { statusCode: 400, message: 'lostReasonId is required' };
+  if (!lostReasonId && !lossReason?.trim()) throw { statusCode: 400, message: 'Reason for loss is required' };
 
   const lostStatus = await prisma.leadStatus.findFirst({
     where: { name: { equals: 'Lost', mode: 'insensitive' } },
@@ -460,14 +460,19 @@ export async function loseLead(user, id, { lostReasonId }) {
 
   const updatedLead = await prisma.$transaction(async (tx) => {
     const lostStage = await tx.pipelineStage.findFirst({ where: { name: { equals: 'Lost', mode: 'insensitive' } } });
-    const reason    = await tx.lostReason.findUnique({ where: { id: lostReasonId } });
+    let reasonName = lossReason?.trim() || null;
+    if (lostReasonId) {
+      const reason = await tx.lostReason.findUnique({ where: { id: lostReasonId } });
+      reasonName = reason?.name ?? reasonName;
+    }
     const updated = await tx.lead.update({
       where: { id },
       data: {
         isLost:   true,
         statusId: lostStatus?.id || lead.statusId,
         stageId:  lostStage?.id ?? lead.stageId,
-        lossReason: reason?.name ?? null,
+        lossReason: reasonName,
+        notes: remarks?.trim() ? (lead.notes ? lead.notes + '\n' + remarks.trim() : remarks.trim()) : lead.notes,
       },
     });
 
@@ -476,7 +481,7 @@ export async function loseLead(user, id, { lostReasonId }) {
         leadId:      id,
         userId:      user.id,
         type:        'STAGE_CHANGE',
-        description: `Lead marked as Lost by ${user.name}`,
+        description: `Lead marked as Lost${reasonName ? ` — ${reasonName}` : ''} by ${user.name}`,
       },
     });
 

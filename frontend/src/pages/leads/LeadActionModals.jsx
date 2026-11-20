@@ -42,32 +42,41 @@ const leadName = (l) => (l ? `${l.firstName} ${l.lastName}`.trim() : '');
 
 // ── Won / Loss status ─────────────────────────────────────────────
 export function WonLossModal({ open, lead, lostReasons, onWin, onLose, onClose }) {
-  const [outcome, setOutcome] = useState('WON');
-  const [value, setValue] = useState('');
+  const [outcome, setOutcome] = useState('');   // '' | 'WON' | 'LOST'
+  const [value, setValue]         = useState('');
   const [invoiceRef, setInvoiceRef] = useState('');
-  const [billDate, setBillDate] = useState('');
+  const [billDate, setBillDate]   = useState('');
   const [billNotes, setBillNotes] = useState('');
-  const [lostReasonId, setLostReasonId] = useState('');
-  const [saving, setSaving] = useState(false);
-  const [error, setError] = useState('');
+  const [lossReason, setLossReason] = useState('');
+  const [remarks, setRemarks]     = useState('');
+  const [saving, setSaving]       = useState(false);
+  const [error, setError]         = useState('');
 
   useEffect(() => {
     if (open) {
-      setOutcome('WON'); setValue(''); setInvoiceRef('');
+      setOutcome(''); setValue(''); setInvoiceRef('');
       setBillDate(new Date().toLocaleDateString('en-CA'));
-      setBillNotes(''); setLostReasonId(''); setError('');
+      setBillNotes(''); setLossReason(''); setRemarks(''); setError('');
     }
   }, [open]);
 
   const submit = async (e) => {
     e.preventDefault();
-    setError('');
-    if (outcome === 'WON' && value !== '' && !(+value > 0)) return setError('Bill amount must be greater than 0');
-    if (outcome === 'LOST' && !lostReasonId) return setError('Select a loss reason');
-    setSaving(true);
+    if (!outcome) return setError('Select Won or Lost');
+    if (outcome === 'WON' && value !== '' && !(+value > 0)) return setError('Actual revenue must be greater than 0');
+    if (outcome === 'LOST' && !lossReason.trim()) return setError('Reason for loss is required');
+    setSaving(true); setError('');
     try {
-      if (outcome === 'WON') await onWin(lead.id, { value: +value, invoiceRef: invoiceRef.trim() || undefined, billDate: billDate || undefined, billNotes: billNotes.trim() || undefined });
-      else await onLose(lead.id, { lostReasonId });
+      if (outcome === 'WON') {
+        await onWin(lead.id, {
+          value: value ? +value : 0,
+          invoiceRef: invoiceRef.trim() || undefined,
+          billDate: billDate || undefined,
+          billNotes: billNotes.trim() || undefined,
+        });
+      } else {
+        await onLose(lead.id, { lossReason: lossReason.trim(), remarks: remarks.trim() || undefined });
+      }
       onClose();
     } catch (err) {
       setError(err.response?.data?.error || 'Could not update the lead');
@@ -76,50 +85,104 @@ export function WonLossModal({ open, lead, lostReasons, onWin, onLose, onClose }
 
   const done = lead?.isWon || lead?.isLost;
 
+  const WonIcon = () => (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-7 h-7">
+      <circle cx="12" cy="12" r="10" /><path d="M8 12l3 3 5-5" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+  const LostIcon = () => (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-7 h-7">
+      <circle cx="12" cy="12" r="10" /><path d="M15 9l-6 6M9 9l6 6" strokeLinecap="round" />
+    </svg>
+  );
+
   return (
-    <Shell open={open} title="Won / Loss Status" subtitle={leadName(lead)} onClose={onClose}>
+    <Shell open={open} title="Update Won/Loss Status" subtitle={`${leadName(lead)} · Finalize Deal`} onClose={onClose}>
       {done ? (
-        <p className="text-sm text-gray-600">This lead is already marked <strong>{lead.isWon ? 'Won' : 'Lost'}</strong> and can't be changed here.</p>
+        <div className="text-center py-6">
+          <p className="text-sm text-gray-600">This lead is already marked <strong>{lead.isWon ? 'Won' : 'Lost'}</strong>.</p>
+        </div>
       ) : (
-        <form onSubmit={submit} className="space-y-4">
+        <form onSubmit={submit} className="space-y-5">
+          <p className="text-sm text-gray-500">Mark this lead as a final result (Won or Lost). This action cannot be undone.</p>
+
+          {/* WON / LOST selector */}
           <div className="grid grid-cols-2 gap-3">
-            {[['WON', 'Won', Trophy], ['LOST', 'Lost', XCircle]].map(([id, label, Icon]) => (
-              <button type="button" key={id} onClick={() => setOutcome(id)}
-                className={`flex items-center justify-center gap-2 rounded-xl border-2 py-3 text-sm font-semibold transition-colors ${
-                  outcome === id ? OUTCOME_ACTIVE[id] : 'border-gray-200 text-gray-500 hover:bg-gray-50'
-                }`}>
-                <Icon className="w-4 h-4" /> {label}
-              </button>
-            ))}
+            {/* WON */}
+            <button type="button" onClick={() => setOutcome('WON')}
+              className={`flex flex-col items-center gap-1 rounded-xl border-2 py-4 px-3 transition-all ${
+                outcome === 'WON' ? 'border-emerald-400 bg-emerald-50 text-emerald-700' : 'border-gray-200 text-gray-400 hover:bg-gray-50'
+              }`}>
+              <WonIcon />
+              <span className="text-sm font-bold mt-1">WON</span>
+              <span className="text-[11px]">Lead converted successfully</span>
+            </button>
+            {/* LOST */}
+            <button type="button" onClick={() => setOutcome('LOST')}
+              className={`flex flex-col items-center gap-1 rounded-xl border-2 py-4 px-3 transition-all ${
+                outcome === 'LOST' ? 'border-red-400 bg-red-50 text-red-600' : 'border-gray-200 text-gray-400 hover:bg-gray-50'
+              }`}>
+              <LostIcon />
+              <span className="text-sm font-bold mt-1">LOST</span>
+              <span className="text-[11px]">Lead did not convert</span>
+            </button>
           </div>
 
-          {outcome === 'WON' ? (
-            <>
-              <p className="text-xs text-gray-400">Add the bill details for this purchase. Leave the amount empty to save without a bill.</p>
-              <label className="block"><span className="block text-xs font-semibold text-gray-500 mb-1.5">Bill / Invoice No.</span>
-                <input value={invoiceRef} onChange={(e) => setInvoiceRef(e.target.value)} className={INPUT} placeholder="e.g. INV-2026-001" /></label>
-              <div className="grid grid-cols-2 gap-3">
-                <label className="block"><span className="block text-xs font-semibold text-gray-500 mb-1.5">Bill Date</span>
-                  <input type="date" value={billDate} onChange={(e) => setBillDate(e.target.value)} className={INPUT} /></label>
-                <label className="block"><span className="block text-xs font-semibold text-gray-500 mb-1.5">Bill Amount (₹)</span>
-                  <input type="number" min="1" step="0.01" value={value} onChange={(e) => setValue(e.target.value)} className={INPUT} placeholder="e.g. 25000" /></label>
+          {/* WON fields */}
+          {outcome === 'WON' && (
+            <div className="space-y-3">
+              <div>
+                <label className="block text-xs font-bold tracking-widest text-gray-500 mb-1.5">PURCHASE REFERENCE TYPE <span className="text-pink-500">*</span></label>
+                <input value={invoiceRef} onChange={(e) => setInvoiceRef(e.target.value)} className={INPUT} placeholder="e.g. INV-2026-001" />
               </div>
-              <label className="block"><span className="block text-xs font-semibold text-gray-500 mb-1.5">Remarks</span>
-                <textarea rows={2} value={billNotes} onChange={(e) => setBillNotes(e.target.value)} className={INPUT} placeholder="Items purchased, notes…" /></label>
-            </>
-          ) : (
-            <label className="block"><span className="block text-xs font-semibold text-gray-500 mb-1.5">Loss reason *</span>
-              <select value={lostReasonId} onChange={(e) => setLostReasonId(e.target.value)} className={INPUT}>
-                <option value="">Select reason…</option>
-                {lostReasons.map((r) => <option key={r.id} value={r.id}>{r.name}</option>)}
-              </select></label>
+              <div>
+                <label className="block text-xs font-bold tracking-widest text-gray-500 mb-1.5">PURCHASE DATE <span className="text-pink-500">*</span></label>
+                <input type="date" value={billDate} onChange={(e) => setBillDate(e.target.value)} className={INPUT} />
+              </div>
+              <div>
+                <label className="block text-xs font-bold tracking-widest text-gray-500 mb-1.5">ACTUAL REVENUE <span className="text-pink-500">*</span></label>
+                <input type="number" min="0" step="0.01" value={value} onChange={(e) => setValue(e.target.value)} className={INPUT} placeholder="Enter actual revenue amount..." />
+              </div>
+              <div>
+                <label className="block text-xs font-bold tracking-widest text-gray-500 mb-1.5">DESCRIPTION / REMARKS</label>
+                <textarea rows={3} value={billNotes} onChange={(e) => setBillNotes(e.target.value)} className={INPUT} placeholder="Enter description or remarks..." />
+              </div>
+            </div>
+          )}
+
+          {/* LOST fields */}
+          {outcome === 'LOST' && (
+            <div className="space-y-3">
+              <div>
+                <label className="block text-xs font-bold tracking-widest text-gray-500 mb-1.5">REASON FOR LOSS <span className="text-pink-500">*</span></label>
+                <textarea rows={3} required value={lossReason} onChange={(e) => setLossReason(e.target.value)} className={INPUT} placeholder="Type the reason why the lead was lost..." />
+              </div>
+              <div>
+                <label className="block text-xs font-bold tracking-widest text-gray-500 mb-1.5">REMARKS</label>
+                <textarea rows={2} value={remarks} onChange={(e) => setRemarks(e.target.value)} className={INPUT} placeholder="Enter remarks..." />
+              </div>
+            </div>
+          )}
+
+          {/* No outcome selected — pending state */}
+          {!outcome && (
+            <div className="text-center text-xs text-gray-400 py-2">Select Won or Lost above to continue</div>
           )}
 
           {error && <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">{error}</p>}
-          <div className="flex justify-end gap-3 pt-1">
-            <button type="button" onClick={onClose} className="px-5 py-2 rounded-lg border border-gray-200 text-sm text-gray-600 hover:bg-gray-50">Cancel</button>
-            <button disabled={saving} className="px-6 py-2 rounded-lg bg-pink-500 hover:bg-pink-600 text-white text-sm font-semibold disabled:opacity-60">
-              {saving ? 'Saving…' : 'Save'}
+
+          <div className="flex gap-3">
+            <button type="submit" disabled={saving || !outcome}
+              className={`flex-1 py-3 rounded-full text-white text-sm font-semibold transition-all disabled:opacity-50 ${
+                outcome === 'LOST' ? 'bg-red-400 hover:bg-red-500' :
+                outcome === 'WON'  ? 'bg-emerald-500 hover:bg-emerald-600' :
+                'bg-blue-400'
+              }`}>
+              {saving ? 'Saving…' : outcome === 'WON' ? 'Confirm Won' : outcome === 'LOST' ? 'Confirm Lost' : 'Confirm Pending'}
+            </button>
+            <button type="button" onClick={onClose}
+              className="px-6 py-3 rounded-full border border-gray-200 text-sm text-gray-600 hover:bg-gray-50">
+              Cancel
             </button>
           </div>
         </form>
