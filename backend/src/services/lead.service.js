@@ -223,7 +223,7 @@ export async function updateLead(user, id, data) {
 
   const { firstName, lastName, email, phone, sourceId, statusId, branchId,
           assignedToId, tagNames, sentiment, rating, dueDate, notes,
-          priority, marriageDate, dnf, expectedWeight, expectedAmount, altPhone, area } = data;
+          priority, marriageDate, dnf, expectedWeight, expectedAmount, altPhone, area, stageId } = data;
 
   // Duplicate phone check (exclude self)
   if (phone?.trim() && phone.trim() !== existing.phone) {
@@ -238,6 +238,10 @@ export async function updateLead(user, id, data) {
   if (statusId && statusId !== existing.statusId) {
     const newStatus = await prisma.leadStatus.findUnique({ where: { id: statusId }, select: { name: true } });
     activities.push({ type: 'STATUS_CHANGE', description: `Lead status changed to ${newStatus?.name || 'unknown'}` });
+  }
+  if (stageId && stageId !== existing.stageId) {
+    const newStage = await prisma.pipelineStage.findUnique({ where: { id: stageId }, select: { name: true } });
+    activities.push({ type: 'STAGE_CHANGE', description: `Stage updated to ${newStage?.name || 'unknown'}` });
   }
   if (assignedToId && assignedToId !== existing.assignedToId) {
     activities.push({ type: 'ASSIGNMENT_CHANGE', description: `Assigned staff changed` });
@@ -267,6 +271,10 @@ export async function updateLead(user, id, data) {
       ...(expectedAmount !== undefined && { expectedAmount: toNum(expectedAmount) }),
       ...(altPhone   !== undefined && { altPhone: altPhone?.trim() || null }),
       ...(area       !== undefined && { area: area?.trim() || null }),
+      ...(stageId    !== undefined && { stageId: stageId || null }),
+      ...(data.stageNote !== undefined && data.stageNote?.trim() && {
+        notes: existing.notes ? existing.notes + '\n' + data.stageNote.trim() : data.stageNote.trim()
+      }),
       ...(tags && { tags: { set: tags.map((t) => ({ id: t.id })) } }),
     },
     include: LEAD_INCLUDE,

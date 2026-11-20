@@ -34,7 +34,7 @@ export default function StageProgressionModal({ open, lead, stages, onSave, onCl
       await onSave(lead.id, {
         stageId: stageId || lead.stageId,
         dueDate,
-        notes,
+        stageNote: notes,
       });
       onClose();
     } catch (err) {
