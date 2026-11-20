@@ -30,7 +30,7 @@ const SUB_TABS = [
 
 const MENU = [
   { key: 'winloss',  label: 'Won/Loss Status', icon: CheckCircle2, tint: 'text-emerald-500' },
-  { key: 'status',   label: 'Lead Status',     icon: CircleDot,    tint: 'text-blue-500'    },
+  { key: 'status',   label: 'Lead Tag (Hot/Cold)',     icon: CircleDot,    tint: 'text-blue-500'    },
   { key: 'edit',     label: 'Edit Details',    icon: Pencil,       tint: 'text-blue-500'    },
   { key: 'view',     label: 'View',            icon: Eye,          tint: 'text-blue-500'    },
   { key: 'history',  label: 'History Log',     icon: History,      tint: 'text-gray-500'    },
@@ -262,7 +262,7 @@ export default function LeadsPage() {
                     <input type="checkbox" aria-label="Select all" onChange={toggleAll} checked={data.length > 0 && selected.size === data.length} className="rounded" />
                   </th>
                 )}
-                {['NAME / DATE', 'CONTACT / AREA', ...(canSeeAll ? ['BRANCH'] : []), 'LEAD SOURCE', 'STAGE', 'STATUS', 'LEAD STATUS', 'PRIORITY', 'CREATED DATE', 'DUE DATE', 'ASSIGNED EMPLOYEE', 'ACTIONS'].map((h) => (
+                {['NAME / DATE', 'CONTACT / AREA', ...(canSeeAll ? ['BRANCH'] : []), 'LEAD SOURCE', 'STAGE', 'WON/LOST', 'LEAD TAG', 'PRIORITY', 'CREATED DATE', 'DUE DATE', 'ASSIGNED EMPLOYEE', 'ACTIONS'].map((h) => (
                   <th key={h} className="text-left text-[10px] font-semibold text-gray-500 tracking-widest px-4 py-3 whitespace-nowrap">{h}</th>
                 ))}
               </tr>
