@@ -54,6 +54,9 @@ import CustomerFeedPage     from '../pages/activity/CustomerFeedPage.jsx';
 import TasksPage            from '../pages/activity/TasksPage.jsx';
 import VisitManagementPage  from '../pages/visits/VisitManagementPage.jsx';
 import VisitReportPage      from '../pages/visits/VisitReportPage.jsx';
+import BdeFieldPage         from '../pages/bde/BdeFieldPage.jsx';
+import BdeVisitsPage        from '../pages/bde/BdeVisitsPage.jsx';
+import BdeLiveMapPage       from '../pages/bde/BdeLiveMapPage.jsx';
 import AppointmentDeskPage  from '../pages/appointments/AppointmentDeskPage.jsx';
 import CustomerIntelligencePage from '../pages/customers/CustomerIntelligencePage.jsx';
 import InteractionLogsPage     from '../pages/customers/InteractionLogsPage.jsx';
@@ -106,6 +109,10 @@ export default function AppRoutes() {
           <Route path="/visits/report"            element={<VisitReportPage />} />
           <Route path="/appointments"             element={<ComingSoon name="Appointments" />} />
           <Route path="/appointments/desk"        element={<AppointmentDeskPage />} />
+          <Route path="/bde-field"                element={<Navigate to="/bde-field/visit" replace />} />
+          <Route path="/bde-field/visit"          element={<BdeFieldPage />} />
+          <Route path="/bde-field/visits"         element={<BdeVisitsPage />} />
+          <Route path="/bde-field/live-map"       element={<RoleGuard roles={['ADMIN', 'MANAGER']}><BdeLiveMapPage /></RoleGuard>} />
 
           {/* Masters — Admin only */}
           <Route path="/masters/companies"           element={<RoleGuard roles={['ADMIN']}><MasterCrudScreen config={COMPANIES_CONFIG} /></RoleGuard>} />

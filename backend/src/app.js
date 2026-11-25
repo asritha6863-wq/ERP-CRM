@@ -24,6 +24,7 @@ import appointmentsRoutes    from './routes/appointments.routes.js';
 import interactionLogsRoutes from './routes/interactionLogs.routes.js';
 import segmentsRoutes       from './routes/segments.routes.js';
 import marriagePurchaseRoutes from './routes/marriagePurchase.routes.js';
+import bdeFieldRoutes from './routes/bdeField.routes.js';
 import { errorHandler } from './middleware/error.middleware.js';
 
 dotenv.config();
@@ -67,6 +68,7 @@ app.use('/api/appointments', appointmentsRoutes);
 app.use('/api/interaction-logs', interactionLogsRoutes);
 app.use('/api/segments', segmentsRoutes);
 app.use('/api/marriage-purchases', marriagePurchaseRoutes);
+app.use('/api/bde-field', bdeFieldRoutes);
 
 // 404 handler
 app.use((req, res) => {

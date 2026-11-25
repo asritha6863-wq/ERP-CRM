@@ -42,6 +42,11 @@ export const ACCESS_MENU = [
   { id: 'appointments', label: 'Appointments', children: [
     { id: 'appointment-desk', label: 'Appointment Desk', path: '/appointments/desk' },
   ] },
+  { id: 'bde-field', label: 'BDE Field Marketing', children: [
+    { id: 'bde-field-visit', label: 'My Field Visit', path: '/bde-field/visit' },
+    { id: 'bde-field-visits', label: 'All Field Visits', path: '/bde-field/visits' },
+    { id: 'bde-live-map', label: 'Live Location Map', path: '/bde-field/live-map' },
+  ] },
   { id: 'masters', label: 'Masters', children: [
     { id: 'stage-master', label: 'Stage Master', path: '/masters/stage' },
     { id: 'area-master', label: 'Area Master', path: '/masters/areas' },

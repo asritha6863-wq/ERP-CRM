@@ -103,6 +103,8 @@ model User {
   assignedTasks   Task[]             @relation("TaskAssignee")
   createdTasks    Task[]             @relation("TaskCreator")
   reminders        Reminder[] @relation("ReminderAssignee")
+  bdeVisits        BdeFieldVisit[]    @relation("BdeVisitStaff")
+  bdeLocationPings BdeLocationPing[]  @relation("BdeLocationStaff")
   createdReminders Reminder[] @relation("ReminderCreator")
   campaigns        Campaign[]
 }
@@ -250,6 +252,7 @@ model Contact {
   appointments Appointment[]
   interactionLogs InteractionLog[]
   bridalAttendee  BridalAttendee?
+  bdeVisits       BdeFieldVisit[]
 
 
   dateOfBirth     DateTime?
@@ -315,6 +318,7 @@ model Lead {
   visits     Visit[]
   activities Activity[]
   feedbacks  Feedback[]
+  bdeVisits  BdeFieldVisit[]
 
   @@index([contactId])
   @@index([channel])
@@ -663,4 +667,64 @@ model Feedback {
   rating    Int
   comment   String?
   createdAt DateTime  @default(now())
+}
+
+// ── BDE Field Marketing — GPS visits + live location ────────
+
+enum BdeVisitStatus {
+  CHECKED_IN
+  CHECKED_OUT
+  CANCELLED
+}
+
+// One field visit by a BDE — check-in captures GPS + new/existing customer info
+model BdeFieldVisit {
+  id              String         @id @default(cuid())
+  userId          String
+  user            User           @relation("BdeVisitStaff", fields: [userId], references: [id])
+  leadId          String?
+  lead            Lead?          @relation(fields: [leadId], references: [id])
+  contactId       String?
+  contact         Contact?       @relation(fields: [contactId], references: [id])
+
+  // Customer info entered by the BDE in the field
+  customerName    String?
+  customerPhone   String?
+  customerAddress String?
+  purpose         String?
+  outcome         String?
+  notes           String?
+
+  // Check-in GPS
+  checkInLat      Float?
+  checkInLng      Float?
+  checkInAddress  String?
+  checkInAt       DateTime       @default(now())
+
+  // Check-out GPS
+  checkOutLat     Float?
+  checkOutLng     Float?
+  checkOutAddress String?
+  checkOutAt      DateTime?
+
+  status          BdeVisitStatus @default(CHECKED_IN)
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+
+  @@index([userId])
+  @@index([checkInAt])
+  @@index([status])
+}
+
+// Periodic GPS ping while a BDE is on field duty — powers the live map
+model BdeLocationPing {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation("BdeLocationStaff", fields: [userId], references: [id])
+  lat       Float
+  lng       Float
+  accuracy  Float?
+  createdAt DateTime @default(now())
+
+  @@index([userId, createdAt])
 }

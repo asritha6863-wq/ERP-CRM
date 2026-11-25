@@ -4,7 +4,7 @@ import {
   BarChart3, FileText, Activity, MapPin, Calendar, Settings2,
   ChevronDown, ChevronRight, Store, BookUser, MessageSquare,
   CheckSquare, Heart, CircleDot, Bell, Megaphone, Gift,
-  BarChart2, Clock, Brain, PieChart, Briefcase,
+  BarChart2, Clock, Brain, PieChart, Briefcase, Navigation, Radio, List,
 } from 'lucide-react';
 import { useState } from 'react';
 import { useAuth } from '../../context/AuthContext.jsx';
@@ -102,6 +102,15 @@ const NAV = [
       { id: 'appointment-desk', label: 'Appointment Desk', path: '/appointments/desk', icon: Calendar },
     ],
   },
+
+  {
+    id: 'bde-field', label: 'BDE Field Marketing', icon: Navigation, roles: ALL,
+    children: [
+      { id: 'bde-field-visit', label: 'My Field Visit',   path: '/bde-field/visit',   icon: Navigation, roles: ALL },
+      { id: 'bde-field-visits', label: 'All Field Visits', path: '/bde-field/visits',  icon: List,       roles: ALL },
+      { id: 'bde-live-map',    label: 'Live Location Map', path: '/bde-field/live-map', icon: Radio,      roles: ['ADMIN', 'MANAGER'] },
+    ],
+  },
 ];
 
 const SALES_PATHS   = ['/leads', '/instore-leads', '/pipeline', '/contacts'];
@@ -113,6 +122,7 @@ const ACTIVITY_PATHS= ['/activity'];
 const VISIT_PATHS   = ['/visits'];
 const APPT_PATHS    = ['/appointments'];
 const MASTER_PATHS  = ['/masters'];
+const BDE_PATHS     = ['/bde-field'];
 
 function getInitOpen(pathname) {
   return {
@@ -125,6 +135,7 @@ function getInitOpen(pathname) {
     'activity':              ACTIVITY_PATHS.some((p) => pathname.startsWith(p)),
     'visits':                VISIT_PATHS.some((p) => pathname.startsWith(p)),
     'appointments':          APPT_PATHS.some((p) => pathname.startsWith(p)),
+    'bde-field':             BDE_PATHS.some((p) => pathname.startsWith(p)),
   };
 }
 
@@ -146,6 +157,9 @@ export default function Sidebar() {
 
   const visible = NAV
     .filter((item) => item.id === 'masters' || item.roles?.includes(user?.role))
+    .map((item) => (item.children
+      ? { ...item, children: item.children.filter((c) => (!c.roles || c.roles.includes(user?.role))) }
+      : item))
     .map((item) => (item.children && !(item.id === 'masters' && user?.role === 'ADMIN')
       ? { ...item, children: item.children.filter((c) => canAccessId(user, c.id)) } : item))
     .map((item) => (item.id === 'masters' && user?.role !== 'ADMIN' ? { ...item, children: item.children.filter((c) => c.id !== 'users') } : item))
